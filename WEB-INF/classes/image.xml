@@ -21,7 +21,15 @@
 	<select id="getFromID" resultSetType="FORWARD_ONLY" parameterType="Map" resultMap="ImageMap">
 		<include refid="getBy" />
 		FROM image
-		WHERE image_id > #{id}
+		WHERE 
+		<choose>
+			<when test="back == true">
+				image_id &lt; #{id}
+			</when>
+			<otherwise>
+				image_id &gt; #{id}
+			</otherwise>
+		</choose>
 		<choose>
 			<when test="emptydesc == true">
 				AND description IS NULL
@@ -30,8 +38,15 @@
 				AND description IS NOT NULL
 			</when>
 		</choose>
-		ORDER BY image_id ASC
-		LIMIT 6
+		<choose>
+			<when test="back == true">
+				ORDER BY image_id DESC
+			</when>
+			<otherwise>
+				ORDER BY image_id ASC
+			</otherwise>
+		</choose>
+		LIMIT ${show}
 	</select>
 
 

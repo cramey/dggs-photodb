@@ -69,12 +69,25 @@ public class ImageListServlet extends HttpServlet
 		try {
 			HashMap map = new HashMap();
 			map.put("id", id);
-			if(request.getParameter("emptydesc") != null){
-				map.put(
-					"emptydesc",
+
+			String emptydesc = request.getParameter("emptydesc");
+			if(emptydesc != null && emptydesc.length() > 0){
+				map.put("emptydesc",
 					Boolean.valueOf(request.getParameter("emptydesc"))
 				);
 			}
+
+			String back = request.getParameter("back");
+			if(back != null && back.length() > 0){
+				map.put("back",
+					Boolean.valueOf(request.getParameter("back"))
+				);
+			}
+
+			Integer show = 6;
+			try { show = Integer.valueOf(request.getParameter("show")); }
+			catch(Exception ex){ }
+			map.put("show", show);
 
 			List output = sess.selectList(
 				"gov.alaska.dggs.photodb.Image.getFromID", map
