@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<project name="photodb" default="compile">
+	<property name="catalina.home" value="/home/cdramey/apache-tomcat-5.5.34" />
+
+	<target name="clean">
+		<delete>
+			<fileset dir="classes" includes="**/*.class" />
+			<fileset dir="../js" includes="*-min.js" />
+			<fileset dir="../css" includes="*-min.css" />
+		</delete>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="classes" />
+
+		<javac srcdir="src" destdir="classes" includeantruntime="false">
+			<classpath>
+				<fileset dir="lib" includes="*.jar" />
+				<fileset dir="${catalina.home}/server/lib" includes="*.jar" />
+				<fileset dir="${catalina.home}/common/lib" includes="*.jar" />
+				<fileset dir="${catalina.home}/shared/lib" includes="*.jar" />
+			</classpath>
+		</javac>
+	</target>
+</project>
