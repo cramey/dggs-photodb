@@ -19,11 +19,21 @@ import org.apache.ibatis.session.SqlSession;
 import gov.alaska.dggs.photodb.PhotoDBFactory;
 
 
-public class ThumbnailDownloadServlet extends HttpServlet
+public class ImageDownloadServlet extends HttpServlet
 {
+	private boolean thumbnail;
+
+
+	public void init() throws ServletException
+	{
+		thumbnail = Boolean.parseBoolean(
+			getServletConfig().getInitParameter("thumbnail")
+		);
+	}
+
+
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPostGet(request,response); }
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPostGet(request,response); }
-
 
 	@SuppressWarnings("unchecked")
 	public void doPostGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -39,11 +49,17 @@ public class ThumbnailDownloadServlet extends HttpServlet
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {
-			ps = conn.prepareStatement(
+			String sql = thumbnail ? 
 				"SELECT filename, image_date, " +
 					"LENGTH(COALESCE(thumbnail, image)) AS image_size, " +
 					"COALESCE(thumbnail, image) AS image " +
-				"FROM image WHERE image_id = ?",
+				"FROM image WHERE image_id = ?" :
+
+				"SELECT filename, image_date, image, " +
+					"LENGTH(image) AS image_size " +
+				"FROM image WHERE image_id = ?";
+
+			ps = conn.prepareStatement(sql,
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_READ_ONLY,
 				ResultSet.CLOSE_CURSORS_AT_COMMIT

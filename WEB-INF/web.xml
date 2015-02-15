@@ -12,8 +12,27 @@
 
 
 	<servlet>
+		<servlet-name>ImageDownload</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.ImageDownloadServlet</servlet-class>
+		<init-param>
+			<param-name>thumbnail</param-name>
+			<param-value>false</param-value>
+		</init-param>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ImageDownload</servlet-name>
+		<url-pattern>/image/*</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
 		<servlet-name>ThumbnailDownload</servlet-name>
-		<servlet-class>gov.alaska.dggs.photodb.ThumbnailDownloadServlet</servlet-class>
+		<servlet-class>gov.alaska.dggs.photodb.ImageDownloadServlet</servlet-class>
+		<init-param>
+			<param-name>thumbnail</param-name>
+			<param-value>true</param-value>
+		</init-param>
 	</servlet>
 
 	<servlet-mapping>
