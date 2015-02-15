@@ -17,4 +17,9 @@
 			</dataSource>
 		</environment>
 	</environments>
+
+	<mappers>
+		<mapper resource="tag.xml" />
+		<mapper resource="image.xml" />
+	</mappers>
 </configuration>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gov.alaska.dggs.photodb.Tag">
+	<sql id="getBy">
+		SELECT t.tag_id, t.name
+	</sql>
+
+	<select id="getByImageID" resultSetType="FORWARD_ONLY" parameterType="int" resultMap="TagMap">
+		<include refid="getBy" />
+		FROM image_tag AS it
+		JOIN tag AS t
+			ON t.tag_id = it.tag_id
+		WHERE it.image_id = #{image_id}
+	</select>
+
+	<resultMap id="TagMap" type="Tag">
+		<id property="id" column="image_id" />
+		<result property="name" column="name" />
+	</resultMap>
+</mapper>
