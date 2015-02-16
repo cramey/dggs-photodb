@@ -42,8 +42,8 @@ public class Image implements Serializable
 	public String getMetadata(){ return metadata; }
 
 
-	private String wkt;
-	public String getWKT(){ return wkt; }
+	private String geojson;
+	public String getGeoJSON(){ return geojson; }
 
 
 	private Date date;

@@ -6,7 +6,7 @@
 <mapper namespace="gov.alaska.dggs.photodb.Image">
 	<sql id="getBy">
 		SELECT image_id, filename, image_date,
-			ST_AsText(ST_Transform(geog::GEOMETRY, 3857)) AS wkt,
+			ST_AsGeoJSON(geog::GEOMETRY) AS geojson,
 			description, metadata::text
 	</sql>
 
@@ -58,7 +58,7 @@
 		<result property="description" column="description" />
 		<result property="date" column="image_date" />
 		<result property="metadata" column="metadata" />
-		<result property="wkt" column="wkt" />
+		<result property="geojson" column="geojson" />
 
 		<collection property="tags" column="image_id" ofType="Tag" select="gov.alaska.dggs.photodb.Tag.getByImageID" />
 	</resultMap>

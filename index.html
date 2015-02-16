@@ -2,15 +2,21 @@
 <html lang="en">
 	<head>
 		<title>Photo Database</title>
+		<link rel="stylesheet" href="js/leaflet-0.7.3.css" />
 		<style>
+			#detailcontainer { display: none; }
 			#results { text-align: center; }
-			#results img { margin: 4px 8px; vertical-align: text-top; }
-			#page-prev, #page-next { margin: 4px 8px; }
-			#page-prev { float: left; }
-			#page-next { float: right; }
+			#results img { margin: 4px 8px; vertical-align: text-top; cursor: pointer; }
+			#btn-prev, #page-next { margin: 4px 8px; }
+			#btn-prev { float: left; }
+			#btn-next { float: right; }
+			#btn-return { float: left; }
+			#map { float: right; height: 300px; width: 50%; }
 		</style>
 		<script src="js/jquery-2.1.3.min.js"></script>
+		<script src="js/leaflet-0.7.3.min.js"></script>
 		<script>
+			var map, layer = null;
 			var last = [0,0];
 
 			$(function(){
@@ -23,8 +29,33 @@
 					$('#btn-search').click();
 				});
 
-				$('#page-prev').click(function(){ search(true); });
-				$('#page-next').click(function(){ search(false); });
+				$('#btn-prev').click(function(){ search(true); });
+				$('#btn-next').click(function(){ search(false); });
+				$('#btn-return').click(function(){
+					$('#detailcontainer').hide();
+					$('#controlcontainer, #resultscontainer').show();
+				});
+
+				$('body').keyup(function(e){
+					var vis = $('#detailcontainer').is(':visible');
+					// Escape
+					if(e.which == 27 && vis) $('#btn-return').click();
+					// Left arrow
+					else if(e.which == 37 && !vis) $('#btn-prev').click();
+					// Right arroe
+					else if(e.which == 39 && !vis) $('#btn-next').click();
+					// 1-9
+					else if(e.which >= 49 && e.which <= 57 && !vis){
+						var i = (e.which - 49);
+						var imgs = $('#results img');
+						if(i < imgs.length) imgs.get(i).click();
+					}
+				});
+
+				map = L.map('map').addLayer(new L.TileLayer(
+					'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+					{minZoom: 3, maxZoom: 12}
+				));
 			});
 
 			function search(back)
@@ -44,6 +75,8 @@
 							var render = function(im){
 								var img = document.createElement('img');
 								img.src = 'thumbnail/' + im['ID'];
+								img.data = im;
+								img.onclick = detail;
 								results.appendChild(img);
 							};
 
@@ -64,13 +97,33 @@
 					}
 				});
 			}
+
+			function detail()
+			{
+				if(layer != null){
+					map.removeLayer(layer);
+					layer = null;
+				}
+
+				$('#controlcontainer, #resultscontainer').hide();
+				$('#detailcontainer').show();
+
+				if('geoJSON' in this.data){
+					map.setView([64.843611, -147.723056], 3);
+
+					var geojson = JSON.parse(this.data['geoJSON']);
+					layer = new L.geoJson(
+						{'type':'Feature','geometry':geojson}
+					).addTo(map);
+				}
+			}
 		</script>
 	</head>
 	<body load="init()">
-		<fieldset>
+		<fieldset id="controlcontainer">
 			<legend>Search</legend>
-			<button id="page-prev">Previous Page</button>
-			<button id="page-next">Next Page</button>
+			<button title="Previous Page - Left Arrow" id="btn-prev">Previous Page</button>
+			<button title="Next page - Right Arrow" id="btn-next">Next Page</button>
 
 			<label for="emptydesc">Description: </label>
 			<select name="emptydesc" id="emptydesc">
@@ -88,6 +141,13 @@
 		<fieldset id="resultscontainer">
 			<legend>Results</legend>
 			<div id="results"></div>
+		</fieldset>
+
+		<fieldset id="detailcontainer">
+			<legend>Detail</legend>
+			<button title="Return to Search - Escape" id="btn-return">Return to Search</button>
+
+			<div id="map"></div>
 		</fieldset>
 	</body>
 </html>
