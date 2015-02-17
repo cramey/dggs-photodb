@@ -57,7 +57,9 @@
 					}
 				});
 
-				map = L.map('map').addLayer(new L.TileLayer(
+				map = L.map('map', {
+					attributionControl: false
+				}).addLayer(new L.TileLayer(
 					'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 					{minZoom: 3, maxZoom: 12}
 				));
@@ -124,9 +126,11 @@
 					map.setView([64.843611, -147.723056], 3);
 				}
 
-				if('filename' in this.data){
-					$('#filename').text(this.data['filename']);
-				}
+				$('#filename').html(
+					'<a href="image/' + this.data['ID'] + '">' +
+					this.data['filename'] + '</a>'
+				);
+
 				if('date' in this.data){
 					$('#date').val(this.data['date']);
 				}
