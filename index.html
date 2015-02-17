@@ -42,15 +42,18 @@
 					var vis = $('#detailcontainer').is(':visible');
 					// Escape
 					if(e.which == 27 && vis) $('#btn-return').click();
-					// Left arrow
-					else if(e.which == 37 && !vis) $('#btn-prev').click();
-					// Right arroe
-					else if(e.which == 39 && !vis) $('#btn-next').click();
-					// 1-9
-					else if(e.which >= 49 && e.which <= 57 && !vis){
-						var i = (e.which - 49);
-						var imgs = $('#results img');
-						if(i < imgs.length) imgs.get(i).click();
+
+					if(!vis && document.activeElement == document.body){
+						// Left arrow
+						if(e.which == 37) $('#btn-prev').click();
+						// Right arroe
+						else if(e.which == 39) $('#btn-next').click();
+						// 1-9
+						else if(e.which >= 49 && e.which <= 57){
+							var i = (e.which - 49);
+							var imgs = $('#results img');
+							if(i < imgs.length) imgs.get(i).click();
+						}
 					}
 				});
 
@@ -62,6 +65,8 @@
 
 			function search(back)
 			{
+				$(document.activeElement).blur();
+
 				$.ajax({
 					url: 'list.json', dataType: 'json',
 					data: {
