@@ -5,45 +5,45 @@
 
 <mapper namespace="gov.alaska.dggs.photodb.Image">
 	<sql id="getBy">
-		SELECT image_id, filename, image_date,
-			ST_AsGeoJSON(geog::GEOMETRY) AS geojson,
-			description, metadata::text
+		SELECT i.image_id, i.filename, i.image_date,
+			ST_AsGeoJSON(i.geog::GEOMETRY) AS geojson,
+			i.description, i.credit, i.metadata::text
 	</sql>
 
 
 	<select id="getByID" resultSetType="FORWARD_ONLY" parameterType="int" resultMap="ImageMap">
 		<include refid="getBy" />
-		FROM image
-		WHERE image_id = #{id}
+		FROM image AS i
+		WHERE i.image_id = #{id}
 	</select>
 
 
 	<select id="getFromID" resultSetType="FORWARD_ONLY" parameterType="Map" resultMap="ImageMap">
 		<include refid="getBy" />
-		FROM image
+		FROM image AS i
 		WHERE 
 		<choose>
 			<when test="back == true">
-				image_id &lt; #{id}
+				i.image_id &lt; #{id}
 			</when>
 			<otherwise>
-				image_id &gt; #{id}
+				i.image_id &gt; #{id}
 			</otherwise>
 		</choose>
 		<choose>
 			<when test="emptydesc == true">
-				AND description IS NULL
+				AND i.description IS NULL
 			</when>
 			<when test="emptydesc == false">
-				AND description IS NOT NULL
+				AND i.description IS NOT NULL
 			</when>
 		</choose>
 		<choose>
 			<when test="back == true">
-				ORDER BY image_id DESC
+				ORDER BY i.image_id DESC
 			</when>
 			<otherwise>
-				ORDER BY image_id ASC
+				ORDER BY i.image_id ASC
 			</otherwise>
 		</choose>
 		LIMIT ${show}
