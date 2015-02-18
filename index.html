@@ -3,22 +3,26 @@
 	<head>
 		<title>Photo Database</title>
 		<link rel="stylesheet" href="js/leaflet-0.7.3.css" />
+		<link rel="stylesheet" href="js/L.Control.MousePosition.css" />
 		<style>
 			#detailcontainer { display: none; }
 			#detailcontainer label { display: block; }
-			#detail { margin: 20px 0px 0px 20px; }
+			#detail { margin: 20px 0px 0px 15px; }
 			#detail th, #detail td { text-align: left; vertical-align: top; }
 			#results { text-align: center; }
 			#results img { margin: 4px 8px; vertical-align: text-top; cursor: pointer; }
 			#btn-prev, #page-next { margin: 4px 8px; }
 			#btn-prev { float: left; }
 			#btn-next { float: right; }
-			#map { float: right; height: 300px; width: 50%; }
+			#map { float: right; height: 550px; width: 50%; }
+			.leaflet-popup { opacity: 0.3 !important; }
+			.leaflet-popup:hover { opacity: 1 !important; }
 		</style>
 		<script src="js/jquery-2.1.3.min.js"></script>
 		<script src="js/leaflet-0.7.3.min.js"></script>
+		<script src="js/L.Control.MousePosition.js"></script>
 		<script>
-			var map, layer = null;
+			var map, marker = null;
 			var last = [0,0];
 
 			$(function(){
@@ -34,8 +38,10 @@
 				$('#btn-prev').click(function(){ search(true); });
 				$('#btn-next').click(function(){ search(false); });
 				$('#btn-return').click(function(){
-					$('#detailcontainer').hide();
-					$('#controlcontainer, #resultscontainer').show();
+					if($('#detailcontainer').is(':visible')){
+						$('#detailcontainer').hide();
+						$('#controlcontainer, #resultscontainer').show();
+					}
 				});
 
 				$('body').keyup(function(e){
@@ -63,10 +69,13 @@
 					'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 					{minZoom: 3, maxZoom: 12}
 				));
+				L.control.mousePosition().addTo(map);
 			});
 
 			function search(back)
 			{
+				if($('#detailcontainer').is(':visible')) return;
+
 				$(document.activeElement).blur();
 
 				$.ajax({
@@ -101,7 +110,9 @@
 								last[1] = json[json.length - 1]['ID'];
 							}
 
-							$('#resultscontainer').show();
+							if(!$('#detailcontainer').is(':visible')){
+								$('#resultscontainer').show();
+							}
 						}
 					}
 				});
@@ -109,39 +120,46 @@
 
 			function detail()
 			{
-				if(layer != null){
-					map.removeLayer(layer);
-					layer = null;
-				}
-
 				$('#controlcontainer, #resultscontainer').hide();
 				$('#detailcontainer').show();
+				$('#date').focus();
 
-				if('geoJSON' in this.data){
-					var geojson = JSON.parse(this.data['geoJSON']);
-					layer = new L.geoJson(
-						{'type':'Feature','geometry':geojson}
-					).addTo(map);
-
-					map.setView([64.843611, -147.723056], 3);
+				map.closePopup();
+				if(marker != null){
+					map.removeLayer(marker);
+					marker = null;
 				}
 
+				map.setView([64.843611, -147.723056], 3);
+
 				$('#filename').html(
-					'<a href="image/' + this.data['ID'] + '">' +
+					'<a target="_blank" href="image/' + this.data['ID'] + '">' +
 					this.data['filename'] + '</a>'
 				);
 
 				if('date' in this.data){
 					$('#date').val(this.data['date']);
 				}
+
 				if('credit' in this.data){
-					$('#credit').val(this.data['credit']);
-				}
-				if('description' in this.data){
-					$('#description').val(this.data['description']);
+					$('#credit').val(this.data.credit);
 				}
 
-				$('#date').focus();
+				if('description' in this.data){
+					$('#description').val(this.data.description);
+				}
+
+				if('geoJSON' in this.data){
+					var geojson = JSON.parse(this.data.geoJSON);
+
+					marker = L.marker(
+						[geojson.coordinates[1], geojson.coordinates[0]],
+						{ keyboard: false, draggable: true }
+					).bindPopup(
+						'<img src="thumbnail/' + this.data['ID'] + '"/>',
+						{ autoPanPaddingTopLeft: [40, 10] }
+					).addTo(map).openPopup();
+				}
 			}
 		</script>
 	</head>
