@@ -52,6 +52,17 @@
 	</servlet-mapping>
 
 
+	<servlet>
+		<servlet-name>Image</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.api.ImageServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>Image</servlet-name>
+		<url-pattern>/image.json</url-pattern>
+	</servlet-mapping>
+
+
 	<listener>
 		<listener-class>gov.alaska.dggs.photodb.PhotoDBFactory</listener-class>
 	</listener>

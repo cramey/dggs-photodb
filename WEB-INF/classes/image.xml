@@ -50,6 +50,14 @@
 	</select>
 
 
+	<update id="update">
+		UPDATE image SET image_date = #{date},
+			credit = #{credit}, description = #{description},
+			geog = ST_SetSRID(ST_GeomFromGeoJSON(#{geojson}), 4326)::GEOGRAPHY
+		WHERE image_id = #{id}
+	</update>
+
+
 	<resultMap id="ImageMap" type="Image">
 		<id property="id" column="image_id" />
 

@@ -15,6 +15,7 @@
 			#btn-prev { float: left; }
 			#btn-next { float: right; }
 			#map { float: right; height: 550px; width: 50%; }
+			#err { text-align: right; color: red; }
 			.leaflet-popup { opacity: 0.3 !important; }
 			.leaflet-popup:hover { opacity: 1 !important; }
 		</style>
@@ -28,6 +29,7 @@
 			$(function(){
 				$('#btn-search').click(function(){
 					last = [0,0];
+					$(document.activeElement).blur();
 					search(false);
 				}).click();
 
@@ -43,6 +45,7 @@
 						$('#controlcontainer, #resultscontainer').show();
 					}
 				});
+				$('#btn-save').click(save);
 
 				$('body').keyup(function(e){
 					var vis = $('#detailcontainer').is(':visible');
@@ -70,13 +73,24 @@
 					{minZoom: 3, maxZoom: 12}
 				));
 				L.control.mousePosition().addTo(map);
+
+				// Add a marker if there isn't one, on click
+				map.on('click', function(evt){
+					if(marker == null){
+						marker = L.marker(
+							evt.latlng,
+							{ keyboard: false, draggable: true }
+						).bindPopup(
+							'<img src="thumbnail/' + $('#id').val() + '"/>',
+							{ autoPanPaddingTopLeft: [40, 10] }
+						).addTo(map);
+					}
+				});
 			});
+
 
 			function search(back)
 			{
-				if($('#detailcontainer').is(':visible')) return;
-
-				$(document.activeElement).blur();
 
 				$.ajax({
 					url: 'list.json', dataType: 'json',
@@ -93,6 +107,7 @@
 							var render = function(im){
 								var img = document.createElement('img');
 								img.src = 'thumbnail/' + im['ID'];
+								img.id = 'img-' + im['ID']
 								img.data = im;
 								img.onclick = detail;
 								results.appendChild(img);
@@ -118,6 +133,7 @@
 				});
 			}
 
+
 			function detail()
 			{
 				$('#controlcontainer, #resultscontainer').hide();
@@ -137,17 +153,12 @@
 					this.data['filename'] + '</a>'
 				);
 
-				if('date' in this.data){
-					$('#date').val(this.data['date']);
-				}
-
-				if('credit' in this.data){
-					$('#credit').val(this.data.credit);
-				}
-
-				if('description' in this.data){
-					$('#description').val(this.data.description);
-				}
+				$('#id').val(this.data['ID']);
+				$('#date').val('date' in this.data ? this.data['date'] : '');
+				$('#credit').val('credit' in this.data ? this.data.credit : '');
+				$('#description').val(
+					'description' in this.data ? this.data.description : ''
+				);
 
 				if('geoJSON' in this.data){
 					var geojson = JSON.parse(this.data.geoJSON);
@@ -160,6 +171,45 @@
 						{ autoPanPaddingTopLeft: [40, 10] }
 					).addTo(map).openPopup();
 				}
+			}
+
+
+			function save()
+			{
+				$('#err').empty();
+
+				var obj = { 'ID': $('#id').val() };
+
+				var description = $('#description').val();
+				if(description.length) obj['description'] = description;
+
+				var credit = $('#credit').val();
+				if(credit.length) obj['credit'] = credit;
+
+				var dt = $('#date').val();
+				if(dt.length) obj['date'] = dt;
+
+				if(marker != null){
+					obj['geojson'] = JSON.stringify(
+						marker.toGeoJSON()['geometry']
+					);
+				}
+
+				$('#btn-save').prop('disabled', true).text('Saving.. ');
+
+				$.ajax({
+					url: 'image.json', type: 'POST',
+					data: obj, dataType: 'json', 
+					success: function(json){
+						if('success' in json && json['success']){
+							$('#btn-save').prop('disabled', false).text('Save Detail');
+						}
+					},
+					error: function(xhr){
+						$('#btn-save').prop('disabled', false).text('Save Detail');
+						$('#err').text('Error saving: ' + xhr.responseText);
+					}
+				});
 			}
 		</script>
 	</head>
@@ -194,6 +244,8 @@
 
 			<button title="Return to Search - Escape" id="btn-return">Return to Search</button>
 
+			<input type="hidden" name="id" id="id" />
+
 			<table id="detail">
 				<tbody>
 					<tr>
@@ -218,6 +270,13 @@
 							<textarea name="description" id="description" cols="35" rows="5"></textarea>
 						</td>
 					</tr>
+					<tr><td>&nbsp;</td></tr>
+					<tr>
+						<td colspan="2" style="text-align: right">
+							<button accesskey="s" id="btn-save"><u>S</u>ave Detail</button>
+						</td>
+					</tr>
+					<tr><td colspan="2" id="err"></td></tr>
 				</tbody>
 			</table>
 		</fieldset>

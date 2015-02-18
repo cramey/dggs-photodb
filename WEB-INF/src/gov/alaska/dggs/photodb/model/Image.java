@@ -12,6 +12,7 @@ public class Image implements Serializable
 
 	private int id;
 	public int getID(){ return id; }
+	public void setID(int id){ this.id = id; }
 
 
 	private String filename;
@@ -44,10 +45,18 @@ public class Image implements Serializable
 
 	private String geojson;
 	public String getGeoJSON(){ return geojson; }
+	public void setGeoJSON(String geojson)
+	{
+		this.geojson = geojson;
+	}
 
 
 	private Date date;
 	public Date getDate(){ return date; }
+	public void setDate(Date date)
+	{
+		this.date = date;
+	}
 
 
 	private List<Tag> tags;
