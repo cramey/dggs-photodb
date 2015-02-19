@@ -58,6 +58,11 @@
 	</update>
 
 
+	<delete id="delete">
+		DELETE FROM image WHERE image_id = #{id}
+	</delete>
+
+
 	<resultMap id="ImageMap" type="Image">
 		<id property="id" column="image_id" />
 

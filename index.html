@@ -68,23 +68,20 @@
 
 				// Collect our baselayers
 				var baselayers = {
-					'MapQuest Open Aerial': new L.TileLayer(
-						'http://otile4.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
-						{ minZoom: 3, maxZoom: 11 }
-					),
 					'Open Street Maps': new L.TileLayer(
 						'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 						{ minZoom: 3, maxZoom: 16 }
+					),
+					'MapQuest Open Aerial': new L.TileLayer(
+						'http://otile4.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
+						{ minZoom: 3, maxZoom: 11 }
 					)
 				};
 
 				// Build the map, it expects baselayers as an array
 				map = L.map('map', {
 					attributionControl: false,
-					layers: [
-						baselayers['MapQuest Open Aerial'],
-						baselayers['Open Street Maps']
-					]
+					layers: [baselayers['Open Street Maps']]
 				});
 
 				// Initialize lon/lat control display on map
@@ -186,7 +183,10 @@
 						{ keyboard: false, draggable: true }
 					).bindPopup(
 						'<img src="thumbnail/' + this.data['ID'] + '"/>',
-						{ autoPanPaddingTopLeft: [40, 10] }
+						{
+							autoPanPaddingTopLeft: [40, 10],
+							autoPanPaddingBottomRight: [55, 10]
+						}
 					).addTo(map).openPopup();
 				}
 			}
@@ -221,6 +221,9 @@
 					success: function(json){
 						if('success' in json && json['success']){
 							$('#btn-save').prop('disabled', false).text('Save Detail');
+							// Update saved image object with new data
+							var img = $('#img-' + obj['ID']);
+							img.prop('data', $.extend(img.prop('data'), obj));
 						}
 					},
 					error: function(xhr){
