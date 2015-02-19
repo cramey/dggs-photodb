@@ -66,13 +66,31 @@
 					}
 				});
 
+				// Collect our baselayers
+				var baselayers = {
+					'MapQuest Open Aerial': new L.TileLayer(
+						'http://otile4.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
+						{ minZoom: 3, maxZoom: 11 }
+					),
+					'Open Street Maps': new L.TileLayer(
+						'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+						{ minZoom: 3, maxZoom: 16 }
+					)
+				};
+
+				// Build the map, it expects baselayers as an array
 				map = L.map('map', {
-					attributionControl: false
-				}).addLayer(new L.TileLayer(
-					'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-					{minZoom: 3, maxZoom: 12}
-				));
+					attributionControl: false,
+					layers: [
+						baselayers['MapQuest Open Aerial'],
+						baselayers['Open Street Maps']
+					]
+				});
+
+				// Initialize lon/lat control display on map
 				L.control.mousePosition().addTo(map);
+				// Initialize layer switcher control
+				L.control.layers(baselayers, []).addTo(map);
 
 				// Add a marker if there isn't one, on click
 				map.on('click', function(evt){
@@ -146,7 +164,6 @@
 					marker = null;
 				}
 
-				map.setView([64.843611, -147.723056], 3);
 
 				$('#filename').html(
 					'<a target="_blank" href="image/' + this.data['ID'] + '">' +
@@ -160,6 +177,7 @@
 					'description' in this.data ? this.data.description : ''
 				);
 
+				map.setView([64.843611, -147.723056], 3);
 				if('geoJSON' in this.data){
 					var geojson = JSON.parse(this.data.geoJSON);
 
