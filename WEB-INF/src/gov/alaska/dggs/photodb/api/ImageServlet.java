@@ -43,17 +43,24 @@ public class ImageServlet extends HttpServlet
 		try {
 			Image image = new Image();
 			image.setID(Integer.parseInt(request.getParameter("ID")));
-			image.setDescription(request.getParameter("description"));
-			image.setCredit(request.getParameter("credit"));
-			image.setGeoJSON(request.getParameter("geojson"));
 
-			if(request.getParameter("date") != null){
-				DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
-				image.setDate(df.parse(request.getParameter("date")));
+			if("delete".equals(request.getParameter("action"))){
+				int r = sess.delete("gov.alaska.dggs.photodb.Image.delete", image);
+				if(r < 1) throw new Exception("Delete failed.");
+			} else {
+				image.setDescription(request.getParameter("description"));
+				image.setCredit(request.getParameter("credit"));
+				image.setGeoJSON(request.getParameter("geojson"));
+
+				if(request.getParameter("date") != null){
+					DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
+					image.setDate(df.parse(request.getParameter("date")));
+				}
+
+				int r = sess.update("gov.alaska.dggs.photodb.Image.update", image);
+				if(r < 1) throw new Exception("Update failed.");
 			}
 
-			int r = sess.update("gov.alaska.dggs.photodb.Image.update", image);
-			if(r < 1) throw new Exception("Update failed.");
 			sess.commit();
 
 			HashMap out = new HashMap();
@@ -66,6 +73,7 @@ public class ImageServlet extends HttpServlet
 			response.setStatus(500);
 			response.setContentType("text/plain");
 			response.getOutputStream().print(ex.getMessage());
+			ex.printStackTrace();
 		} finally {
 			sess.close();	
 		}

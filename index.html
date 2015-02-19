@@ -14,6 +14,7 @@
 			#btn-prev, #page-next { margin: 4px 8px; }
 			#btn-prev { float: left; }
 			#btn-next { float: right; }
+			#btn-save { float: right; }
 			#map { float: right; height: 550px; width: 50%; }
 			#err { text-align: right; color: red; }
 			.leaflet-popup { opacity: 0.3 !important; }
@@ -46,6 +47,7 @@
 					}
 				});
 				$('#btn-save').click(save);
+				$('#btn-delete').click(remove);
 
 				$('body').keyup(function(e){
 					var vis = $('#detailcontainer').is(':visible');
@@ -106,7 +108,6 @@
 
 			function search(back)
 			{
-
 				$.ajax({
 					url: 'list.json', dataType: 'json',
 					data: {
@@ -120,12 +121,12 @@
 							var results = $('#results').empty().get(0);
 
 							var render = function(im){
-								var img = document.createElement('img');
-								img.src = 'thumbnail/' + im['ID'];
-								img.id = 'img-' + im['ID']
-								img.data = im;
-								img.onclick = detail;
-								results.appendChild(img);
+								$(document.createElement('img'))
+									.attr('src', 'thumbnail/' + im['ID'])
+									.attr('id', 'img-' + im['ID'])
+									.prop('data', im)
+									.click(detail)
+									.appendTo(results);
 							};
 
 							if(back){
@@ -232,6 +233,29 @@
 					}
 				});
 			}
+
+			function remove()
+			{
+				var msg = "Are you sure you want to delete this photo?\n" +
+					"This cannot be undone.";
+				if(confirm(msg)){
+					var id = $('#id').val();
+					$.ajax({
+						url: 'image.json', type: 'POST', dataType: 'json',
+						data: { 'action': 'delete', 'ID': id },
+						success: function(json){
+							if('success' in json && json['success']){
+								// Hide image on search
+								$('#img-' + id).css(
+									{'opacity': 0.1, 'cursor': 'auto'}
+								).unbind('click');
+								// Return to search
+								$('#btn-return').click();
+							}
+						}
+					});
+				}
+			}
 		</script>
 	</head>
 	<body load="init()">
@@ -291,9 +315,11 @@
 							<textarea name="description" id="description" cols="35" rows="5"></textarea>
 						</td>
 					</tr>
-					<tr><td>&nbsp;</td></tr>
+					<tr><td colspan="2">&nbsp;</td></tr>
 					<tr>
-						<td colspan="2" style="text-align: right">
+						<td>&nbsp;</td>
+						<td>
+							<button accesskey="d" id="btn-delete"><u>D</u>elete Photo</button>
 							<button accesskey="s" id="btn-save"><u>S</u>ave Detail</button>
 						</td>
 					</tr>
