@@ -32,7 +32,7 @@
 					last = [0,0];
 					$(document.activeElement).blur();
 					search(false);
-				}).click();
+				});
 
 				$('#emptydesc').change(function(){
 					$('#btn-search').click();
@@ -40,10 +40,18 @@
 
 				$('#btn-prev').click(function(){ search(true); });
 				$('#btn-next').click(function(){ search(false); });
+
+				// Search by specified set if in the hash
+				if(location.hash.length){
+					last[0] = last[1] = Number(location.hash.substring(1));
+				}
+				search(false);
+
 				$('#btn-return').click(function(){
 					if($('#detailcontainer').is(':visible')){
 						$('#detailcontainer').hide();
 						$('#controlcontainer, #resultscontainer').show();
+						location.hash = JSON.stringify(last);
 					}
 				});
 				$('#btn-save').click(save);
@@ -112,9 +120,9 @@
 					url: 'list.json', dataType: 'json',
 					data: {
 						'id': back ? last[0] : last[1],
+						'back': back,
 						'show': $('#show').val(),
-						'emptydesc': $('#emptydesc').val(),
-						'back': back
+						'emptydesc': $('#emptydesc').val()
 					},
 					success: function(json){
 						if(json.length){
@@ -140,6 +148,7 @@
 								last[0] = json[0]['ID'];
 								last[1] = json[json.length - 1]['ID'];
 							}
+							location.hash = (last[0] - 1);
 
 							if(!$('#detailcontainer').is(':visible')){
 								$('#resultscontainer').show();
