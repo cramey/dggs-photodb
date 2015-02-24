@@ -5,9 +5,11 @@
 
 <mapper namespace="gov.alaska.dggs.photodb.Image">
 	<sql id="getBy">
-		SELECT i.image_id, i.filename, i.image_date,
+		SELECT i.image_id, i.filename,
+			i.taken, i.modified, i.entered,
+			i.summary, i.description, i.credit,
 			ST_AsGeoJSON(i.geog::GEOMETRY) AS geojson,
-			i.description, i.credit, i.metadata::text
+			i.metadata::text
 	</sql>
 
 
@@ -51,8 +53,9 @@
 
 
 	<update id="update">
-		UPDATE image SET image_date = #{date},
-			credit = #{credit}, description = #{description},
+		UPDATE image SET
+			taken = #{taken}, credit = #{credit},
+			summary = #{summary}, description = #{description},
 			geog = ST_SetSRID(ST_GeomFromGeoJSON(#{geojson}), 4326)::GEOGRAPHY
 		WHERE image_id = #{id}
 	</update>
@@ -69,7 +72,10 @@
 		<result property="filename" column="filename" />
 		<result property="credit" column="credit" />
 		<result property="description" column="description" />
-		<result property="date" column="image_date" />
+		<result property="summary" column="summary" />
+		<result property="taken" column="taken" />
+		<result property="modified" column="modified" />
+		<result property="entered" column="entered" />
 		<result property="metadata" column="metadata" />
 		<result property="geojson" column="geojson" />
 

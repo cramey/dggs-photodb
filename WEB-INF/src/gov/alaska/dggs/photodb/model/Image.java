@@ -31,6 +31,14 @@ public class Image implements Serializable
 	}
 
 
+	private String summary;
+	public String getSummary(){ return summary; }
+	public void setSummary(String summary)
+	{
+		this.summary = summary;
+	}
+
+
 	private String description;
 	public String getDescription(){ return description; }
 	public void setDescription(String description)
@@ -51,11 +59,27 @@ public class Image implements Serializable
 	}
 
 
-	private Date date;
-	public Date getDate(){ return date; }
-	public void setDate(Date date)
+	private Date taken;
+	public Date getTaken(){ return taken; }
+	public void setTaken(Date taken)
 	{
-		this.date = date;
+		this.taken = taken;
+	}
+
+
+	private Date modified;
+	public Date getModified(){ return modified; }
+	public void setModified(Date modified)
+	{
+		this.modified = modified;
+	}
+
+
+	private Date entered;
+	public Date getEntered(){ return entered; }
+	public void setEntered(Date entered)
+	{
+		this.entered = entered;
 	}
 
 

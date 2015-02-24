@@ -163,41 +163,49 @@
 			{
 				$('#controlcontainer, #resultscontainer').hide();
 				$('#detailcontainer').show();
-				$('#date').focus();
+
+				document.getElementById('taken').focus();
 
 				map.closePopup();
 				if(marker != null){
 					map.removeLayer(marker);
 					marker = null;
 				}
-
-
-				$('#filename').html(
-					'<a target="_blank" href="image/' + this.data['ID'] + '">' +
-					this.data['filename'] + '</a>'
-				);
-
-				$('#id').val(this.data['ID']);
-				$('#date').val('date' in this.data ? this.data['date'] : '');
-				$('#credit').val('credit' in this.data ? this.data.credit : '');
-				$('#description').val(
-					'description' in this.data ? this.data.description : ''
-				);
-
 				map.setView([64.843611, -147.723056], 3);
-				if('geoJSON' in this.data){
-					var geojson = JSON.parse(this.data.geoJSON);
 
-					marker = L.marker(
-						[geojson.coordinates[1], geojson.coordinates[0]],
-						{ keyboard: false, draggable: true }
-					).bindPopup(
-						'<img src="thumbnail/' + this.data['ID'] + '"/>',
-						{
-							autoPanPaddingTopLeft: [40, 10],
-							autoPanPaddingBottomRight: [55, 10]
-						}
-					).addTo(map).openPopup();
+				for(var i in this.data){
+					switch(i){
+						case 'filename':
+							var fn = document.getElementById('filename');
+							if(fn != null) fn.innerHTML =
+								'<a target="_blank" href="image/' + this.data['ID'] + '">' +
+								this.data[i] + '</a>';
+						break;
+
+						case 'geoJSON':
+							var geojson = JSON.parse(this.data[i]);
+
+							marker = L.marker(
+								[geojson.coordinates[1], geojson.coordinates[0]],
+								{ keyboard: false, draggable: true }
+							).bindPopup(
+								'<img src="thumbnail/' + this.data['ID'] + '"/>',
+								{
+									autoPanPaddingTopLeft: [40, 10],
+									autoPanPaddingBottomRight: [55, 10]
+								}
+							).addTo(map).openPopup();
+						break;
+
+						default:
+							var el = document.getElementById(i.toLowerCase());
+							if(el != null){
+								if(el.tagName == 'INPUT' || el.tagName == 'TEXTAREA'){
+									el.value = this.data[i];
+								}
+							}
+						break;
+					}
 				}
 			}
 
@@ -206,16 +214,14 @@
 			{
 				$('#err').empty();
 
-				var obj = { 'ID': $('#id').val() };
-
-				var description = $('#description').val();
-				if(description.length) obj['description'] = description;
-
-				var credit = $('#credit').val();
-				if(credit.length) obj['credit'] = credit;
-
-				var dt = $('#date').val();
-				if(dt.length) obj['date'] = dt;
+				var fields = document.querySelectorAll(
+					'#detail input, #detail textarea'
+				);
+				var obj = {};
+				for(var i = fields.length; i--;){
+					var val = fields[i].value.trim();
+					if(val.length > 0) obj[fields[i].id] = val;
+				}
 
 				if(marker != null){
 					obj['geojson'] = JSON.stringify(
@@ -232,7 +238,7 @@
 						if('success' in json && json['success']){
 							$('#btn-save').prop('disabled', false).text('Save Detail');
 							// Update saved image object with new data
-							var img = $('#img-' + obj['ID']);
+							var img = $('#img-' + obj.id);
 							img.prop('data', $.extend(img.prop('data'), obj));
 						}
 					},
@@ -242,6 +248,7 @@
 					}
 				});
 			}
+
 
 			function remove()
 			{
@@ -298,8 +305,6 @@
 
 			<button title="Return to Search - Escape" id="btn-return">Return to Search</button>
 
-			<input type="hidden" name="id" id="id" />
-
 			<table id="detail">
 				<tbody>
 					<tr>
@@ -307,15 +312,21 @@
 						<td id="filename"></td>
 					</tr>
 					<tr>
-						<th>Date:</th>
+						<th>Date Taken:</th>
 						<td>
-							<input type="text" name="date" id="date" size="9" />
+							<input type="text" name="taken" id="taken" size="9" />
 						</td>
 					</tr>
 					<tr>
 						<th>Credit:</th>
 						<td>
 							<textarea name="credit" id="credit" cols="30" rows="2"></textarea>
+						</td>
+					</tr>
+					<tr>
+						<th>Summary:</th>
+						<td>
+							<textarea name="summary" id="summary" cols="30" rows="2"></textarea>
 						</td>
 					</tr>
 					<tr>
@@ -328,6 +339,8 @@
 					<tr>
 						<td>&nbsp;</td>
 						<td>
+							<input type="hidden" name="id" id="id" />
+
 							<button accesskey="d" id="btn-delete"><u>D</u>elete Photo</button>
 							<button accesskey="s" id="btn-save"><u>S</u>ave Detail</button>
 						</td>

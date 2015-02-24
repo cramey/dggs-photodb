@@ -50,12 +50,12 @@ public class ImageDownloadServlet extends HttpServlet
 		ResultSet rs = null;
 		try {
 			String sql = thumbnail ? 
-				"SELECT filename, image_date, " +
+				"SELECT filename, taken, " +
 					"LENGTH(COALESCE(thumbnail, image)) AS image_size, " +
 					"COALESCE(thumbnail, image) AS image " +
 				"FROM image WHERE image_id = ?" :
 
-				"SELECT filename, image_date, image, " +
+				"SELECT filename, taken, image, " +
 					"LENGTH(image) AS image_size " +
 				"FROM image WHERE image_id = ?";
 
@@ -73,9 +73,9 @@ public class ImageDownloadServlet extends HttpServlet
 				String mime = context.getMimeType(filename.toLowerCase());
 				if(mime == null) mime = "application/octet-stream";
 
-				Date date = rs.getDate("image_date");
-				if(date != null){
-					response.addDateHeader("Last-Modified", date.getTime());
+				Date taken = rs.getDate("taken");
+				if(taken != null){
+					response.addDateHeader("Last-Modified", taken.getTime());
 				}
 
 				response.setContentLength(rs.getInt("image_size"));

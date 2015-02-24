@@ -41,8 +41,8 @@ BEGIN
 	NEW.search =
 		TO_TSVECTOR('simple', COALESCE(NEW.credit, '')) ||
 		TO_TSVECTOR('simple', COALESCE(NEW.filename, '')) ||
-		TO_TSVECTOR('english', COALESCE(NEW.summary, '')) ||
-		TO_TSVECTOR('english', COALESCE(NEW.description, '')) || (
+		TO_TSVECTOR('simple', COALESCE(NEW.summary, '')) ||
+		TO_TSVECTOR('simple', COALESCE(NEW.description, '')) || (
 			SELECT TO_TSVECTOR(
 				'simple', COALESCE(STRING_AGG(t.name, ' '), '')
 			)

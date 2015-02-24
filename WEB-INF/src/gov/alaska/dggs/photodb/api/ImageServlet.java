@@ -42,19 +42,20 @@ public class ImageServlet extends HttpServlet
 		SqlSession sess = PhotoDBFactory.openSession();
 		try {
 			Image image = new Image();
-			image.setID(Integer.parseInt(request.getParameter("ID")));
+			image.setID(Integer.parseInt(request.getParameter("id")));
 
 			if("delete".equals(request.getParameter("action"))){
 				int r = sess.delete("gov.alaska.dggs.photodb.Image.delete", image);
 				if(r < 1) throw new Exception("Delete failed.");
 			} else {
+				image.setSummary(request.getParameter("summary"));
 				image.setDescription(request.getParameter("description"));
 				image.setCredit(request.getParameter("credit"));
 				image.setGeoJSON(request.getParameter("geojson"));
 
-				if(request.getParameter("date") != null){
+				if(request.getParameter("taken") != null){
 					DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
-					image.setDate(df.parse(request.getParameter("date")));
+					image.setTaken(df.parse(request.getParameter("taken")));
 				}
 
 				int r = sess.update("gov.alaska.dggs.photodb.Image.update", image);
