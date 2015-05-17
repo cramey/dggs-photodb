@@ -27,6 +27,18 @@
 			var map, marker = null;
 			var last = [0,0];
 
+			function updatehash()
+			{
+				var hash = [];
+				hash.push(last[0] - 1);
+				hash.push([]);
+				if($('#detailcontainer').is(':visible')){
+					hash.push(Number($('#id').val()));
+				}
+				var str = JSON.stringify(hash);
+				location.hash = str.substring(1, str.length - 1);
+			}
+
 			$(function(){
 				$('#btn-search').click(function(){
 					last = [0,0];
@@ -43,15 +55,17 @@
 
 				// Search by specified set if in the hash
 				if(location.hash.length){
-					last[0] = last[1] = Number(location.hash.substring(1));
-				}
-				search(false);
+					var hash = JSON.parse('['+location.hash.substring(1)+']');
+					last[1] = last[0] = hash[0];
+					if(hash.length > 2) search(false, hash[2]);
+					else search(false);
+				} else search(false);
 
 				$('#btn-return').click(function(){
 					if($('#detailcontainer').is(':visible')){
 						$('#detailcontainer').hide();
 						$('#controlcontainer, #resultscontainer').show();
-						location.hash = JSON.stringify(last);
+						updatehash();
 					}
 				});
 				$('#btn-save').click(save);
@@ -64,14 +78,20 @@
 
 					if(!vis && document.activeElement == document.body){
 						// Left arrow
-						if(e.which == 37) $('#btn-prev').click();
+						if(e.which == 37){
+							$('#btn-prev').click();
 						// Right arroe
-						else if(e.which == 39) $('#btn-next').click();
+						} else if(e.which == 39){
+							$('#btn-next').click();
 						// 1-9
-						else if(e.which >= 49 && e.which <= 57){
+						} else if(e.which >= 49 && e.which <= 57){
 							var i = (e.which - 49);
 							var imgs = $('#results img');
-							if(i < imgs.length) imgs.get(i).click();
+							if(i <= imgs.length) imgs.get(i).click();
+						// 0
+						} else if(e.which == 48){
+							var imgs = $('#results img');
+							if(imgs.length > 9) imgs.get(9).click();
 						}
 					}
 				});
@@ -108,22 +128,41 @@
 						).bindPopup(
 							'<img src="thumbnail/' + $('#id').val() + '"/>',
 							{ autoPanPaddingTopLeft: [40, 10] }
-						).addTo(map);
+						).on('dblclick', function(evt){
+							map.removeLayer(marker);
+							marker = null;
+						}).addTo(map);
 					}
 				});
 			});
 
 
-			function search(back)
+			function search(back, edit)
 			{
+				var obj = {
+					'id': (back ? last[0] : last[1]),
+					'back': back
+				};
+
+				var fields = document.querySelectorAll(
+					'#controlcontainer input, #controlcontainer select'
+				);
+				for(var i = fields.length; i--;){
+					switch(fields[i].tagName){
+						case 'INPUT':
+							var val = fields[i].value.trim();
+							if(val.length > 0) obj[fields[i].id] = val;
+						break;
+
+						case 'SELECT':
+							var val = fields[i].options[fields[i].selectedIndex].value.trim();
+							if(val.length > 0) obj[fields[i].id] = val;
+						break;
+					}
+				}
+
 				$.ajax({
-					url: 'list.json', dataType: 'json',
-					data: {
-						'id': back ? last[0] : last[1],
-						'back': back,
-						'show': $('#show').val(),
-						'emptydesc': $('#emptydesc').val()
-					},
+					url: 'list.json', dataType: 'json', data: obj,
 					success: function(json){
 						if(json.length){
 							var results = $('#results').empty().get(0);
@@ -148,7 +187,12 @@
 								last[0] = json[0]['ID'];
 								last[1] = json[json.length - 1]['ID'];
 							}
-							location.hash = (last[0] - 1);
+
+							if(typeof edit !== 'undefined'){
+								$('#img-' + edit).click();
+							} else {
+								updatehash();
+							}
 
 							if(!$('#detailcontainer').is(':visible')){
 								$('#resultscontainer').show();
@@ -194,7 +238,10 @@
 									autoPanPaddingTopLeft: [40, 10],
 									autoPanPaddingBottomRight: [55, 10]
 								}
-							).addTo(map).openPopup();
+							).on('dblclick', function(evt){
+								map.removeLayer(marker);
+								marker = null;
+							}).addTo(map);
 						break;
 
 						default:
@@ -207,6 +254,8 @@
 						break;
 					}
 				}
+
+				updatehash();
 			}
 
 
@@ -282,13 +331,16 @@
 
 			<label for="emptydesc">Description: </label>
 			<select name="emptydesc" id="emptydesc">
-				<option value="">Any</option>
-				<option value="true" selected="selected">Only Empty</option>
+				<option value="" selected="selected">Any</option>
+				<option value="true">Only Empty</option>
 				<option value="false">Only Filled</option>
 			</select>
 
+			<label for="search">Search: </label>
+			<input type="text" size="25" name="search" id="search" />
+
 			<label for="show">Showing: </label>
-			<input type="text" size="4" name="show" id="show" value="6" />
+			<input type="text" size="4" name="show" id="show" value="10" />
 
 			<button id="btn-search">Search</button>
 		</fieldset>

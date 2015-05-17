@@ -62,7 +62,6 @@
 		<url-pattern>/image.json</url-pattern>
 	</servlet-mapping>
 
-
 	<listener>
 		<listener-class>gov.alaska.dggs.photodb.PhotoDBFactory</listener-class>
 	</listener>

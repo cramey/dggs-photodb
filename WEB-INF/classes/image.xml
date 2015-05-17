@@ -40,6 +40,9 @@
 				AND i.description IS NOT NULL
 			</when>
 		</choose>
+		<if test="search != null">
+			AND search @@ plainto_tsquery('simple', #{search})
+		</if>
 		<choose>
 			<when test="back == true">
 				ORDER BY i.image_id DESC

@@ -70,6 +70,11 @@ public class ImageListServlet extends HttpServlet
 			HashMap map = new HashMap();
 			map.put("id", id);
 
+			String search = request.getParameter("search");
+			if(search != null && search.length() > 0){
+				map.put("search", request.getParameter("search"));
+			}
+
 			String emptydesc = request.getParameter("emptydesc");
 			if(emptydesc != null && emptydesc.length() > 0){
 				map.put("emptydesc",
