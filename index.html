@@ -5,12 +5,17 @@
 		<link rel="stylesheet" href="js/leaflet-0.7.3.css" />
 		<link rel="stylesheet" href="js/L.Control.MousePosition.css" />
 		<style>
+			#edit-controls, #search-controls { padding: 4px 8px; }
+			#edit-controls { text-align: center; }
 			#detailcontainer { display: none; }
 			#detailcontainer label { display: block; }
 			#detail { margin: 20px 0px 0px 15px; }
 			#detail th, #detail td { text-align: left; vertical-align: top; }
 			#results { text-align: center; }
-			#results img { margin: 4px 8px; vertical-align: text-top; cursor: pointer; }
+			#results a { margin: 4px 8px; display: inline-block; border: 2px solid transparent; }
+			#results a img { vertical-align: text-top; }
+			#results a.selected { background-color: blue; border: 2px solid blue; }
+			#results a.selected img { opacity: 0.75; }
 			#btn-prev, #page-next { margin: 4px 8px; }
 			#btn-prev { float: left; }
 			#btn-next { float: right; }
@@ -26,22 +31,17 @@
 		<script>
 			var map, marker = null;
 			var last = [0,0];
-
-			function updatehash()
-			{
-				var hash = [];
-				hash.push(last[0] - 1);
-				hash.push([]);
-				if($('#detailcontainer').is(':visible')){
-					hash.push(Number($('#id').val()));
-				}
-				var str = JSON.stringify(hash);
-				location.hash = str.substring(1, str.length - 1);
-			}
+			var selected = [];
 
 			$(function(){
 				$('#btn-search').click(function(){
+					// Clear last query
 					last = [0,0];
+
+					/// Clear last selected
+					selected = [];
+					$('#edit-blurb').text('');
+
 					$(document.activeElement).blur();
 					search(false);
 				});
@@ -52,20 +52,22 @@
 
 				$('#btn-prev').click(function(){ search(true); });
 				$('#btn-next').click(function(){ search(false); });
+				$('#btn-select').click(selectAll);
+				$('#btn-edit').click(detail);
 
-				// Search by specified set if in the hash
-				if(location.hash.length){
-					var hash = JSON.parse('['+location.hash.substring(1)+']');
-					last[1] = last[0] = hash[0];
-					if(hash.length > 2) search(false, hash[2]);
-					else search(false);
-				} else search(false);
+				$('#detail input[type=checkbox]').change(function(){
+					var el_id = $(this).attr('id');
+					$('#' + el_id.substring(0, (el_id.length - 8))).prop(
+						'disabled', $(this).prop('checked')
+					);
+				});
+
+				search(false);
 
 				$('#btn-return').click(function(){
 					if($('#detailcontainer').is(':visible')){
 						$('#detailcontainer').hide();
 						$('#controlcontainer, #resultscontainer').show();
-						updatehash();
 					}
 				});
 				$('#btn-save').click(save);
@@ -86,12 +88,15 @@
 						// 1-9
 						} else if(e.which >= 49 && e.which <= 57){
 							var i = (e.which - 49);
-							var imgs = $('#results img');
+							var imgs = $('#results a');
 							if(i <= imgs.length) imgs.get(i).click();
 						// 0
 						} else if(e.which == 48){
-							var imgs = $('#results img');
+							var imgs = $('#results a');
 							if(imgs.length > 9) imgs.get(9).click();
+						// 'a' - select all
+						} else if(e.which == 65){
+							selectAll();
 						}
 					}
 				});
@@ -137,7 +142,7 @@
 			});
 
 
-			function search(back, edit)
+			function search(back)
 			{
 				var obj = {
 					'id': (back ? last[0] : last[1]),
@@ -168,12 +173,30 @@
 							var results = $('#results').empty().get(0);
 
 							var render = function(im){
-								$(document.createElement('img'))
-									.attr('src', 'thumbnail/' + im['ID'])
-									.attr('id', 'img-' + im['ID'])
+								var alt = '';
+								if('credit' in im) alt += im['credit'];
+								if('taken' in im){
+									if(alt.length > 0) alt += ", ";
+									alt += im['taken'];
+								}
+								if('summary' in im){
+									if(alt.length > 0) alt += "\n";
+									alt += im['summary'];
+								}
+
+								var a = $(document.createElement('a'))
+									.attr('href', '#')
+									.attr('title', alt)
+									//.attr('id', 'img-' + im['ID'])
+									.attr('class', selected.indexOf(im['ID']) >= 0 ? 'selected' : '')
 									.prop('data', im)
-									.click(detail)
-									.appendTo(results);
+									.click(select);
+
+								var img = $(document.createElement('img'))
+									.attr('src', 'thumbnail/' + im['ID']);
+
+								a.append(img);
+								a.appendTo(results);
 							};
 
 							if(back){
@@ -188,12 +211,6 @@
 								last[1] = json[json.length - 1]['ID'];
 							}
 
-							if(typeof edit !== 'undefined'){
-								$('#img-' + edit).click();
-							} else {
-								updatehash();
-							}
-
 							if(!$('#detailcontainer').is(':visible')){
 								$('#resultscontainer').show();
 							}
@@ -201,15 +218,66 @@
 					}
 				});
 			}
+	
+
+			function selectAll()
+			{
+				var unselected = $('#results a').not('.selected');
+				if(unselected.length == 0){
+					$('#results a').click();
+				} else {
+					unselected.click();
+				}
+
+				if(selected.length){
+					$('#edit-blurb').text(selected.length + ' images selected');
+				} else {
+					$('#edit-blurb').text('');
+				}
+			}
+
+
+			function select()
+			{
+				$(this).blur();
+
+				if(this.className === 'selected'){
+					this.className = '';
+					var idx = selected.indexOf(this.data['ID']);
+					if(idx >= 0) selected.splice(idx, 1);
+				} else {
+					this.className = 'selected';
+					selected.push(this.data['ID']);
+				}
+
+				if(selected.length){
+					$('#edit-blurb').text(selected.length + ' images selected');
+				} else {
+					$('#edit-blurb').text('');
+				}
+
+				return false;
+			}
 
 
 			function detail()
 			{
-				$('#controlcontainer, #resultscontainer').hide();
-				$('#detailcontainer').show();
+				if(selected.length > 0){
+					$('#controlcontainer, #resultscontainer').hide();
+					$('#detailcontainer').show();
 
-				document.getElementById('taken').focus();
-
+					document.getElementById('taken').focus();
+					$.ajax({
+						url: 'detail.json', dataType: 'json',
+						data: { image_id: selected },
+						success: function(json){
+							if(json.length){
+								console.log(json);
+							}
+						}
+					});
+				}
+				/*
 				map.closePopup();
 				if(marker != null){
 					map.removeLayer(marker);
@@ -230,6 +298,8 @@
 							var geojson = JSON.parse(this.data[i]);
 
 							marker = L.marker(
+								// I have no idea why this is even necessary.
+								// Why are the parameters swapped?
 								[geojson.coordinates[1], geojson.coordinates[0]],
 								{ keyboard: false, draggable: true }
 							).bindPopup(
@@ -254,8 +324,7 @@
 						break;
 					}
 				}
-
-				updatehash();
+				*/
 			}
 
 
@@ -312,7 +381,7 @@
 							if('success' in json && json['success']){
 								// Hide image on search
 								$('#img-' + id).css(
-									{'opacity': 0.1, 'cursor': 'auto'}
+									{ 'opacity': 0.1, 'cursor': 'auto' }
 								).unbind('click');
 								// Return to search
 								$('#btn-return').click();
@@ -329,20 +398,29 @@
 			<button title="Previous Page - Left Arrow" id="btn-prev">Previous Page</button>
 			<button title="Next page - Right Arrow" id="btn-next">Next Page</button>
 
-			<label for="emptydesc">Description: </label>
-			<select name="emptydesc" id="emptydesc">
-				<option value="" selected="selected">Any</option>
-				<option value="true">Only Empty</option>
-				<option value="false">Only Filled</option>
-			</select>
+			<div id="search-controls">
+				<label for="emptydesc">Description: </label>
+				<select name="emptydesc" id="emptydesc">
+					<option value="" selected="selected">Any</option>
+					<option value="true">Only Empty</option>
+					<option value="false">Only Filled</option>
+				</select>
 
-			<label for="search">Search: </label>
-			<input type="text" size="25" name="search" id="search" />
+				<label for="search">Search: </label>
+				<input type="text" size="25" name="search" id="search" />
 
-			<label for="show">Showing: </label>
-			<input type="text" size="4" name="show" id="show" value="10" />
+				<label for="show">Showing: </label>
+				<input type="text" size="4" name="show" id="show" value="10" />
 
-			<button id="btn-search">Search</button>
+				<button id="btn-search">Search</button>
+			</div>
+
+			<div id="edit-controls">
+				<button id="btn-select">Select All</button>
+				<button id="btn-edit" accesskey="e"><u>E</u>dit Selected</button>
+				<button id="btn-remove">Remove Selected</button>
+				<span id="edit-blurb"></span>
+			</div>
 		</fieldset>
 
 		<fieldset id="resultscontainer">
@@ -367,24 +445,28 @@
 						<th>Date Taken:</th>
 						<td>
 							<input type="text" name="taken" id="taken" size="9" />
+							<input type="checkbox" id="taken-disable" />
 						</td>
 					</tr>
 					<tr>
 						<th>Credit:</th>
 						<td>
 							<textarea name="credit" id="credit" cols="30" rows="2"></textarea>
+							<input type="checkbox" id="credit-disable" />
 						</td>
 					</tr>
 					<tr>
 						<th>Summary:</th>
 						<td>
 							<textarea name="summary" id="summary" cols="30" rows="2"></textarea>
+							<input type="checkbox" id="summary-disable" />
 						</td>
 					</tr>
 					<tr>
 						<th>Description:</th>
 						<td>
 							<textarea name="description" id="description" cols="35" rows="5"></textarea>
+							<input type="checkbox" id="description-disable" />
 						</td>
 					</tr>
 					<tr><td colspan="2">&nbsp;</td></tr>

@@ -55,6 +55,13 @@
 	</select>
 
 
+	<select id="getCommonByID" resultSetType="FORWARD_ONLY" resultType="Map">
+		SELECT image_ids, credit, taken,
+			summary, description, geojson, tags
+		FROM images_common(<foreach item="item" index="index" collection="list" open="ARRAY[" separator="," close="]">${item}</foreach>)
+	</select>
+
+
 	<update id="update">
 		UPDATE image SET
 			taken = #{taken}, credit = #{credit},

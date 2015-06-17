@@ -1,5 +1,4 @@
 DROP TABLE tag, image, image_tag;
-
 CREATE TABLE tag (
 	tag_id SERIAL PRIMARY KEY,
 	name VARCHAR(50)

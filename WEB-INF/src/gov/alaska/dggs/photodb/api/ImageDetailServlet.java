@@ -12,12 +12,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 import java.util.zip.GZIPOutputStream;
+import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Date;
-import java.util.Arrays;
+
+import java.sql.Array;
 
 import flexjson.JSONSerializer;
 import flexjson.transformer.DateTransformer;
@@ -30,19 +30,19 @@ import gov.alaska.dggs.transformer.ExcludeTransformer;
 import gov.alaska.dggs.transformer.IterableTransformer;
 
 
-public class ImageListServlet extends HttpServlet
+public class ImageDetailServlet extends HttpServlet
 {
 	private static JSONSerializer serializer;
 	static {
 		serializer = new JSONSerializer();
+		serializer.include("image_ids");
+		serializer.include("credit");
+		serializer.include("taken");
+		serializer.include("summary");
+		serializer.include("description");
+		serializer.include("geojson");
 		serializer.include("tags");
 
-		serializer.exclude("modified");
-		serializer.exclude("entered");
-		serializer.exclude("description");
-		serializer.exclude("metadata");
-		serializer.exclude("geojson");
-		serializer.exclude("tags.class");
 		serializer.exclude("class");
 
 		serializer.transform(new DateTransformer("M/d/yyyy"), Date.class);
@@ -60,10 +60,6 @@ public class ImageListServlet extends HttpServlet
 	{
 		ServletContext context = getServletContext();
 
-		Integer id = 0;
-		try { id = Integer.valueOf(request.getParameter("id")); }
-		catch(Exception ex){ }
-
 		// Aggressively disable cache
 		response.setHeader("Cache-Control","no-cache");
 		response.setHeader("Pragma","no-cache");
@@ -71,36 +67,25 @@ public class ImageListServlet extends HttpServlet
 
 		SqlSession sess = PhotoDBFactory.openSession();
 		try {
-			HashMap map = new HashMap();
-			map.put("id", id);
-
-			String search = request.getParameter("search");
-			if(search != null && search.length() > 0){
-				map.put("search", request.getParameter("search"));
+			List<Integer> ids = new ArrayList<Integer>();
+			String[] strids = request.getParameterValues("image_id[]");
+			for(String sid : strids){
+				try { ids.add(Integer.valueOf(sid)); }
+				catch(Exception ex){
+					// Explicitly do nothing
+				}
 			}
 
-			String emptydesc = request.getParameter("emptydesc");
-			if(emptydesc != null && emptydesc.length() > 0){
-				map.put("emptydesc",
-					Boolean.valueOf(request.getParameter("emptydesc"))
-				);
-			}
-
-			String back = request.getParameter("back");
-			if(back != null && back.length() > 0){
-				map.put("back",
-					Boolean.valueOf(request.getParameter("back"))
-				);
-			}
-
-			Integer show = 6;
-			try { show = Integer.valueOf(request.getParameter("show")); }
-			catch(Exception ex){ }
-			map.put("show", show);
-
-			List output = sess.selectList(
-				"gov.alaska.dggs.photodb.Image.getFromID", map
+			Map output = sess.selectOne(
+				"gov.alaska.dggs.photodb.Image.getCommonByID", ids
 			);
+
+			// Fix java.sql.Arrrays - I probably should write
+			// a transformer for this
+			Array pid = (Array)output.get("image_ids");
+			if(pid != null){
+				output.put("image_ids", pid.getArray());
+			}
 
 			OutputStreamWriter out = null;
 			GZIPOutputStream gos = null;
