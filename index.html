@@ -24,6 +24,7 @@
 			#err { text-align: right; color: red; }
 			.leaflet-popup { opacity: 0.3 !important; }
 			.leaflet-popup:hover { opacity: 1 !important; }
+			.toggle-disable { font-size: 10px; color: red; }
 		</style>
 		<script src="js/jquery-2.1.3.min.js"></script>
 		<script src="js/leaflet-0.7.3.min.js"></script>
@@ -34,6 +35,9 @@
 			var selected = [];
 
 			$(function(){
+				// Get rid of that bracket mess
+				$.ajaxSetup({ traditional: true });
+
 				$('#btn-search').click(function(){
 					// Clear last query
 					last = [0,0];
@@ -55,23 +59,22 @@
 				$('#btn-select').click(selectAll);
 				$('#btn-edit').click(detail);
 
-				$('#detail input[type=checkbox]').change(function(){
-					var el_id = $(this).attr('id');
-					$('#' + el_id.substring(0, (el_id.length - 8))).prop(
-						'disabled', $(this).prop('checked')
-					);
+				$('.toggle-disable').click(function(){
+					toggleDisabled(this);
+					return false;
 				});
 
 				search(false);
 
 				$('#btn-return').click(function(){
 					if($('#detailcontainer').is(':visible')){
+						$(document.activeElement).blur();
 						$('#detailcontainer').hide();
 						$('#controlcontainer, #resultscontainer').show();
 					}
 				});
-				$('#btn-save').click(save);
-				$('#btn-delete').click(remove);
+				//$('#btn-save').click(save);
+				//$('#btn-delete').click(remove);
 
 				$('body').keyup(function(e){
 					var vis = $('#detailcontainer').is(':visible');
@@ -218,7 +221,30 @@
 					}
 				});
 			}
-	
+
+
+			function toggleDisabled(el, enabled)
+			{
+				var input, link;
+
+				if(/^a$/i.test(el.tagName)){
+					link = el;
+					input = $(link).parents('tr').find('select,input,textarea').get(0);
+				} else {
+					input = el;
+					link = $(input).parents('tr').find('.toggle-disable').get(0);
+				}
+
+				if(typeof enabled == 'undefined'){
+					enabled = $(link).text().indexOf('Enable') >= 0;
+				}
+
+				$(link)
+					.css('color', enabled ? 'green' : 'red')
+					.text(enabled ? 'Disable editing' : 'Enable editing');
+				$(input).prop('disabled', !enabled);
+			}
+
 
 			function selectAll()
 			{
@@ -263,68 +289,64 @@
 			function detail()
 			{
 				if(selected.length > 0){
-					$('#controlcontainer, #resultscontainer').hide();
-					$('#detailcontainer').show();
-
-					document.getElementById('taken').focus();
 					$.ajax({
 						url: 'detail.json', dataType: 'json',
 						data: { image_id: selected },
 						success: function(json){
-							if(json.length){
-								console.log(json);
+							$('#detailcontainer').find('input, textarea').val('');
+							$('#detailcontainer').find('input, textarea, select').each(function(i,v){
+								toggleDisabled(v, false);
+							});
+
+							$('#controlcontainer, #resultscontainer').hide();
+							$('#detailcontainer').show();
+
+							map.closePopup();
+							if(marker != null){
+								map.removeLayer(marker);
+								marker = null;
 							}
+							for(i in json){
+								switch(i){
+									case 'geojson':
+										if(json[i][0]){
+											var geojson = JSON.parse(json[i][0]);
+
+											marker = L.marker(
+												// I have no idea why this is even necessary.
+												// Why are the parameters swapped?
+												[geojson.coordinates[1], geojson.coordinates[0]],
+												{ keyboard: false, draggable: true }
+											).on('dblclick', function(evt){
+												map.removeLayer(marker);
+												marker = null;
+											}).addTo(map);
+										}
+									break;
+
+									default:
+										var el = document.getElementById(i.toLowerCase());
+										if(el != null && /^(textarea|input)$/i.test(el.tagName)){
+											if(json[i].length > 0 && json[i][0]){
+												el.value = json[i][0];
+											}
+											toggleDisabled(el, json[i].length > 0);
+										}
+									break;
+								}
+							}
+
+							$('#detailcontainer').find('*').each(function(i, v){
+								if(/^(input|select|textarea)$/i.test(v.tagName) && !this.disabled){
+									this.focus();
+									return false;
+								}
+							});
+							map.setView([64.843611, -147.723056], 3);
+
 						}
 					});
 				}
-				/*
-				map.closePopup();
-				if(marker != null){
-					map.removeLayer(marker);
-					marker = null;
-				}
-				map.setView([64.843611, -147.723056], 3);
-
-				for(var i in this.data){
-					switch(i){
-						case 'filename':
-							var fn = document.getElementById('filename');
-							if(fn != null) fn.innerHTML =
-								'<a target="_blank" href="image/' + this.data['ID'] + '">' +
-								this.data[i] + '</a>';
-						break;
-
-						case 'geoJSON':
-							var geojson = JSON.parse(this.data[i]);
-
-							marker = L.marker(
-								// I have no idea why this is even necessary.
-								// Why are the parameters swapped?
-								[geojson.coordinates[1], geojson.coordinates[0]],
-								{ keyboard: false, draggable: true }
-							).bindPopup(
-								'<img src="thumbnail/' + this.data['ID'] + '"/>',
-								{
-									autoPanPaddingTopLeft: [40, 10],
-									autoPanPaddingBottomRight: [55, 10]
-								}
-							).on('dblclick', function(evt){
-								map.removeLayer(marker);
-								marker = null;
-							}).addTo(map);
-						break;
-
-						default:
-							var el = document.getElementById(i.toLowerCase());
-							if(el != null){
-								if(el.tagName == 'INPUT' || el.tagName == 'TEXTAREA'){
-									el.value = this.data[i];
-								}
-							}
-						break;
-					}
-				}
-				*/
 			}
 
 
@@ -416,9 +438,9 @@
 			</div>
 
 			<div id="edit-controls">
-				<button id="btn-select">Select All</button>
+				<button id="btn-select" accesskey="a">Select <u>A</u>ll</button>
 				<button id="btn-edit" accesskey="e"><u>E</u>dit Selected</button>
-				<button id="btn-remove">Remove Selected</button>
+				<button id="btn-remove" accesskey="r"><u>R</u>emove Selected</button>
 				<span id="edit-blurb"></span>
 			</div>
 		</fieldset>
@@ -438,35 +460,48 @@
 			<table id="detail">
 				<tbody>
 					<tr>
-						<th>Filename:</th>
-						<td id="filename"></td>
-					</tr>
-					<tr>
-						<th>Date Taken:</th>
+						<th>
+							Date Taken:<br>
+							<a class="toggle-disable" href="#taken">Enable editing</a>
+						</th>
 						<td>
-							<input type="text" name="taken" id="taken" size="9" />
-							<input type="checkbox" id="taken-disable" />
+							<input type="text" name="taken" id="taken" tabindex="1" autocomplete="off" size="9" disabled>
 						</td>
 					</tr>
 					<tr>
-						<th>Credit:</th>
+						<th>
+							Credit:<br>
+							<a class="toggle-disable" href="#credit">Enable editing</a>
+						</th>
 						<td>
-							<textarea name="credit" id="credit" cols="30" rows="2"></textarea>
-							<input type="checkbox" id="credit-disable" />
+							<textarea name="credit" id="credit" cols="30" rows="2" tabindex="2" autocomplete="off" disabled></textarea>
 						</td>
 					</tr>
 					<tr>
-						<th>Summary:</th>
+						<th>
+							Summary:<br>
+							<a class="toggle-disable" href="#summary">Enable editing</a>
+						</th>
 						<td>
-							<textarea name="summary" id="summary" cols="30" rows="2"></textarea>
-							<input type="checkbox" id="summary-disable" />
+							<textarea name="summary" id="summary" cols="30" rows="2" tabindex="3" autocomplete="off" disabled></textarea>
 						</td>
 					</tr>
 					<tr>
-						<th>Description:</th>
+						<th>
+							Description:<br>
+							<a class="toggle-disable" href="#description">Enable editing</a>
+						</th>
 						<td>
-							<textarea name="description" id="description" cols="35" rows="5"></textarea>
-							<input type="checkbox" id="description-disable" />
+							<textarea name="description" id="description" cols="35" rows="5" tabindex="4" autocomplete="off" disabled></textarea>
+						</td>
+					</tr>
+					<tr>
+						<th>
+							Tags<br>
+							<a class="toggle-disable" href="#tags">Enable editing</a>
+						</th>
+						<td>
+							<input type="text" name="tags" id="tags" size="30" tabindex="5" disabled>
 						</td>
 					</tr>
 					<tr><td colspan="2">&nbsp;</td></tr>

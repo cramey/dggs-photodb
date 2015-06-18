@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
 
-import java.sql.Array;
-
 import flexjson.JSONSerializer;
 import flexjson.transformer.DateTransformer;
 
@@ -28,6 +26,7 @@ import gov.alaska.dggs.photodb.PhotoDBFactory;
 import gov.alaska.dggs.photodb.model.Image;
 import gov.alaska.dggs.transformer.ExcludeTransformer;
 import gov.alaska.dggs.transformer.IterableTransformer;
+import gov.alaska.dggs.transformer.SQLArrayTransformer;
 
 
 public class ImageDetailServlet extends HttpServlet
@@ -35,7 +34,6 @@ public class ImageDetailServlet extends HttpServlet
 	private static JSONSerializer serializer;
 	static {
 		serializer = new JSONSerializer();
-		serializer.include("image_ids");
 		serializer.include("credit");
 		serializer.include("taken");
 		serializer.include("summary");
@@ -46,8 +44,8 @@ public class ImageDetailServlet extends HttpServlet
 		serializer.exclude("class");
 
 		serializer.transform(new DateTransformer("M/d/yyyy"), Date.class);
-		serializer.transform(new ExcludeTransformer(), void.class);
-		serializer.transform(new IterableTransformer(), Iterable.class);
+		//serializer.transform(new ExcludeTransformer(), void.class);
+		serializer.transform(new SQLArrayTransformer(), java.sql.Array.class);
 	}
 
 
@@ -68,7 +66,7 @@ public class ImageDetailServlet extends HttpServlet
 		SqlSession sess = PhotoDBFactory.openSession();
 		try {
 			List<Integer> ids = new ArrayList<Integer>();
-			String[] strids = request.getParameterValues("image_id[]");
+			String[] strids = request.getParameterValues("image_id");
 			for(String sid : strids){
 				try { ids.add(Integer.valueOf(sid)); }
 				catch(Exception ex){
@@ -79,13 +77,6 @@ public class ImageDetailServlet extends HttpServlet
 			Map output = sess.selectOne(
 				"gov.alaska.dggs.photodb.Image.getCommonByID", ids
 			);
-
-			// Fix java.sql.Arrrays - I probably should write
-			// a transformer for this
-			Array pid = (Array)output.get("image_ids");
-			if(pid != null){
-				output.put("image_ids", pid.getArray());
-			}
 
 			OutputStreamWriter out = null;
 			GZIPOutputStream gos = null;
