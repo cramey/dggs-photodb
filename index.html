@@ -56,10 +56,23 @@
 					$('#btn-search').click();
 				});
 
-				$('#btn-prev').click(function(){ search(true); });
-				$('#btn-next').click(function(){ search(false); });
-				$('#btn-select').click(selectAll);
-				$('#btn-edit').click(detail);
+				$('#btn-prev').click(function(){
+					search(true);
+					$(document.activeElement).blur();
+				});
+				$('#btn-next').click(function(){
+					search(false);
+					$(document.activeElement).blur();
+				});
+				$('#btn-select').click(function(){
+					selectAll();
+					$(document.activeElement).blur();
+				});
+
+				$('#btn-edit').click(function(){
+					detail();
+					$(document.activeElement).blur();
+				});
 
 				$('.toggle-disable').click(function(){
 					toggleDisabled(this);
