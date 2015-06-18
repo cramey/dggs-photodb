@@ -20,11 +20,13 @@
 			#btn-prev { float: left; }
 			#btn-next { float: right; }
 			#btn-save { float: right; }
-			#map { float: right; height: 550px; width: 50%; }
+			#preview-images { float: right; width: 50%; white-space: nowrap; overflow-x: scroll; margin-top: 20px; }
+			#map { float: right; height: 400px; width: 50%; clear: both; }
 			#err { text-align: right; color: red; }
 			.leaflet-popup { opacity: 0.3 !important; }
 			.leaflet-popup:hover { opacity: 1 !important; }
 			.toggle-disable { font-size: 10px; color: red; }
+			.clearb { clear: both; }
 		</style>
 		<script src="js/jquery-2.1.3.min.js"></script>
 		<script src="js/leaflet-0.7.3.min.js"></script>
@@ -133,9 +135,6 @@
 						marker = L.marker(
 							evt.latlng,
 							{ keyboard: false, draggable: true }
-						).bindPopup(
-							'<img src="thumbnail/' + $('#id').val() + '"/>',
-							{ autoPanPaddingTopLeft: [40, 10] }
 						).on('dblclick', function(evt){
 							map.removeLayer(marker);
 							marker = null;
@@ -293,6 +292,20 @@
 						url: 'detail.json', dataType: 'json',
 						data: { image_id: selected },
 						success: function(json){
+							var preview = $('#preview-images').empty();
+							for(i = 0; i < selected.length; i++){
+								if(i > 0) preview.append('&nbsp;');
+								var a = $(document.createElement('a'))
+									.attr('href', 'image/' + selected[i])
+									.attr('target', '_blank');
+
+								$(document.createElement('img'))
+									.attr('src', 'thumbnail/' + selected[i])
+									.appendTo(a);
+
+								a.appendTo(preview);
+							}
+
 							$('#detailcontainer').find('input, textarea').val('');
 							$('#detailcontainer').find('input, textarea, select').each(function(i,v){
 								toggleDisabled(v, false);
@@ -517,6 +530,8 @@
 					<tr><td colspan="2" id="err"></td></tr>
 				</tbody>
 			</table>
+			<div class="clearb"></div>
+			<div id="preview-images"></div>
 		</fieldset>
 	</body>
 </html>
