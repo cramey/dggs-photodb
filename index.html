@@ -37,6 +37,14 @@
 			var selected = [];
 
 			$(function(){
+				// This feels kind of dirty, but it works and solves the
+				// problem of floating, overflow constrained elements
+				// with dynamic width
+				$(window).resize(function(){
+					$('#preview-images').width($(window).width() / 2);
+				});
+				$('#preview-images').width($(window).width() / 2);
+
 				// Get rid of that bracket mess
 				$.ajaxSetup({ traditional: true });
 
