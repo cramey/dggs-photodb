@@ -64,7 +64,7 @@
 
 				$('#btn-save').click(save);
 
-				$('#emptydesc').change(function(){
+				$('#emptydesc, #emptylocation').change(function(){
 					$('#btn-search').click();
 				});
 
@@ -482,6 +482,13 @@
 			<div id="search-controls">
 				<label for="emptydesc">Description: </label>
 				<select name="emptydesc" id="emptydesc">
+					<option value="" selected="selected">Any</option>
+					<option value="true">Only Empty</option>
+					<option value="false">Only Filled</option>
+				</select>
+
+				<label for="emptylocation">Location: </label>
+				<select name="emptylocation" id="emptylocation">
 					<option value="" selected="selected">Any</option>
 					<option value="true">Only Empty</option>
 					<option value="false">Only Filled</option>

@@ -86,6 +86,13 @@ public class ImageListServlet extends HttpServlet
 				);
 			}
 
+			String emptylocation = request.getParameter("emptylocation");
+			if(emptylocation != null && emptylocation.length() > 0){
+				map.put("emptylocation",
+					Boolean.valueOf(request.getParameter("emptylocation"))
+				);
+			}
+
 			String back = request.getParameter("back");
 			if(back != null && back.length() > 0){
 				map.put("back",

@@ -91,8 +91,6 @@ public class ImageServlet extends HttpServlet
 										}
 									}
 
-									System.out.println("tag_id: " + tag.getID());
-									
 									HashMap m = new HashMap();
 									m.put("image", image);
 									m.put("tag", tag);

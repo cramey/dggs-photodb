@@ -40,6 +40,14 @@
 				AND i.description IS NOT NULL
 			</when>
 		</choose>
+		<choose>
+			<when test="emptylocation == true">
+				AND i.geog IS NULL
+			</when>
+			<when test="emptylocation == false">
+				AND i.geog IS NOT NULL
+			</when>
+		</choose>
 		<if test="search != null">
 			AND search @@ plainto_tsquery('simple', #{search})
 		</if>
