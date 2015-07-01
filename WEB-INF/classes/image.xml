@@ -64,11 +64,26 @@
 
 	<update id="update">
 		UPDATE image SET
-			taken = #{taken}, credit = #{credit},
-			summary = #{summary}, description = #{description},
+			taken = #{taken},
+			credit = #{credit},
+			summary = #{summary},
+			description = #{description},
 			geog = ST_SetSRID(ST_GeomFromGeoJSON(#{geojson}), 4326)::GEOGRAPHY
 		WHERE image_id = #{id}
 	</update>
+
+
+	<insert id="addTag" parameterType="Map">
+		INSERT INTO image_tag (image_id, tag_id)
+		VALUES (#{image.id}, #{tag.id})
+	</insert>
+
+
+	<delete id="removeTag" parameterType="Map">
+		DELETE FROM image_tag
+		WHERE image_id = #{image.id}
+			AND tag_id = #{tag.id}
+	</delete>
 
 
 	<delete id="delete">

@@ -7,8 +7,8 @@ public class Tag implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 
-	private int id;
-	public int getID(){ return id; }
+	private Integer id;
+	public Integer getID(){ return id; }
 
 	private String name;
 	public String getName(){ return name; }

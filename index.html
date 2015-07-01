@@ -60,6 +60,8 @@
 					search(false);
 				});
 
+				$('#btn-save').click(save);
+
 				$('#emptydesc').change(function(){
 					$('#btn-search').click();
 				});
@@ -135,19 +137,34 @@
 					'MapQuest Open Aerial': new L.TileLayer(
 						'http://otile4.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
 						{ minZoom: 3, maxZoom: 11 }
+					),
+					'GINA Satellite': new L.TileLayer(
+						'http://tiles.gina.alaska.edu/tilesrv/bdl/tile/{x}/{y}/{z}',
+						{ minZoom: 3, mazZoom: 15 }
+					),
+					'GINA Topographic': new L.TileLayer(
+						'http://tiles.gina.alaska.edu/tilesrv/drg/tile/{x}/{y}/{z}',
+						{ minZoom: 3, maxZoom: 12 }
+					)
+				};
+
+				var overlays = {
+					'Quadrangles': new L.TileLayer(
+						'http://tiles.gina.alaska.edu/tilesrv/quad_google/tile/{x}/{y}/{z}',
+						{ minZoom: 3, maxZoom: 16 }
 					)
 				};
 
 				// Build the map, it expects baselayers as an array
 				map = L.map('map', {
 					attributionControl: false,
-					layers: [baselayers['Open Street Maps']]
+					layers: [ baselayers['Open Street Maps'] ]
 				});
 
 				// Initialize lon/lat control display on map
 				L.control.mousePosition().addTo(map);
 				// Initialize layer switcher control
-				L.control.layers(baselayers, []).addTo(map);
+				L.control.layers(baselayers, overlays).addTo(map);
 
 				// Add a marker if there isn't one, on click
 				map.on('click', function(evt){
@@ -191,15 +208,21 @@
 				$.ajax({
 					url: 'list.json', dataType: 'json', data: obj,
 					success: function(json){
+						var results = $('#results').empty().get(0);
 						if(json.length){
-							var results = $('#results').empty().get(0);
-
 							var render = function(im){
 								var alt = '';
-								if('credit' in im) alt += im['credit'];
+								if('filename' in im) alt+= im['filename'];
 								if('taken' in im){
-									if(alt.length > 0) alt += ", ";
+									if(alt.length > 0) alt += "\n";
 									alt += im['taken'];
+								}
+								if('credit' in im){
+									if(alt.length > 0){
+										if('taken' in im) alt += ', ';
+										else alt += "\n";
+									}
+									alt += im['credit'];
 								}
 								if('summary' in im){
 									if(alt.length > 0) alt += "\n";
@@ -326,12 +349,13 @@
 								a.appendTo(preview);
 							}
 
-							$('#detailcontainer').find('input, textarea').val('');
-							$('#detailcontainer').find('input, textarea, select').each(function(i,v){
+							$('#detail').find('input, textarea').val('');
+							$('#detail').find('input, textarea, select').each(function(i,v){
 								toggleDisabled(v, false);
 							});
 
 							$('#controlcontainer, #resultscontainer').hide();
+							$('#err').empty();
 							$('#detailcontainer').show();
 
 							map.closePopup();
@@ -385,34 +409,31 @@
 
 			function save()
 			{
-				$('#err').empty();
-
-				var fields = document.querySelectorAll(
-					'#detail input, #detail textarea'
-				);
-				var obj = {};
-				for(var i = fields.length; i--;){
-					var val = fields[i].value.trim();
-					if(val.length > 0) obj[fields[i].id] = val;
-				}
+				var data = $('#detail input, #detail textarea').serialize();
 
 				if(marker != null){
-					obj['geojson'] = JSON.stringify(
+					if(data.length > 0) data += '&';
+					data += $.param({ 'geojson': JSON.stringify(
 						marker.toGeoJSON()['geometry']
-					);
+					)}, true);
 				}
 
+				if(data.length == 0){
+					alert('Nothing to save!');
+					return;
+				}
+
+				data += '&' + $.param({ 'image_id': selected }, true);
+
+				$('#err').empty();
 				$('#btn-save').prop('disabled', true).text('Saving.. ');
 
 				$.ajax({
 					url: 'image.json', type: 'POST',
-					data: obj, dataType: 'json', 
+					data: data, dataType: 'json', 
 					success: function(json){
 						if('success' in json && json['success']){
 							$('#btn-save').prop('disabled', false).text('Save Detail');
-							// Update saved image object with new data
-							var img = $('#img-' + obj.id);
-							img.prop('data', $.extend(img.prop('data'), obj));
 						}
 					},
 					error: function(xhr){
@@ -473,7 +494,7 @@
 			<div id="edit-controls">
 				<button id="btn-select" accesskey="a">Select <u>A</u>ll</button>
 				<button id="btn-edit" accesskey="e"><u>E</u>dit Selected</button>
-				<button id="btn-remove" accesskey="r"><u>R</u>emove Selected</button>
+				<button id="btn-remove" accesskey="d"><u>D</u>elete Selected</button>
 				<span id="edit-blurb"></span>
 			</div>
 		</fieldset>

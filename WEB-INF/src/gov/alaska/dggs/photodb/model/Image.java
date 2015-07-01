@@ -10,9 +10,9 @@ public class Image implements Serializable
 	private static final long serialVersionUID = 1L;
 
 
-	private int id;
-	public int getID(){ return id; }
-	public void setID(int id){ this.id = id; }
+	private Integer id;
+	public Integer getID(){ return id; }
+	public void setID(Integer id){ this.id = id; }
 
 
 	private String filename;
