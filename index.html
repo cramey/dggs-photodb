@@ -2,8 +2,8 @@
 <html lang="en">
 	<head>
 		<title>Photo Database</title>
-		<link rel="stylesheet" href="js/leaflet-0.7.3.css" />
-		<link rel="stylesheet" href="js/L.Control.MousePosition.css" />
+		<link rel="stylesheet" href="js/leaflet-0.7.3.css">
+		<link rel="stylesheet" href="js/L.Control.MousePosition.css">
 		<style>
 			#edit-controls, #search-controls { padding: 4px 8px; }
 			#edit-controls { text-align: center; }
@@ -59,6 +59,8 @@
 					$(document.activeElement).blur();
 					search(false, true);
 				});
+
+				$('#btn-remove').click(remove);
 
 				$('#btn-save').click(save);
 
@@ -402,8 +404,8 @@
 									return false;
 								}
 							});
-							map.setView([64.843611, -147.723056], 3);
 
+							map.setView([64.843611, -147.723056], 3);
 						}
 					});
 				}
@@ -449,24 +451,24 @@
 
 			function remove()
 			{
-				var msg = "Are you sure you want to delete this photo?\n" +
-					"This cannot be undone.";
-				if(confirm(msg)){
-					var id = $('#id').val();
-					$.ajax({
-						url: 'image.json', type: 'POST', dataType: 'json',
-						data: { 'action': 'delete', 'ID': id },
-						success: function(json){
-							if('success' in json && json['success']){
-								// Hide image on search
-								$('#img-' + id).css(
-									{ 'opacity': 0.1, 'cursor': 'auto' }
-								).unbind('click');
-								// Return to search
-								$('#btn-return').click();
+				$(document.activeElement).blur();
+				if(selected.length > 0){
+					var msg = "Are you sure you want to delete these photos?\n" +
+						"This cannot be undone.";
+					if(confirm(msg)){
+						var id = $('#id').val();
+						$.ajax({
+							url: 'image.json', type: 'POST', dataType: 'json',
+							data: { 'action': 'delete', 'image_id': selected },
+							success: function(json){
+								if('success' in json && json['success']){
+									selected = [];
+									$('#edit-blurb').text('');
+									search(true, false);
+								}
 							}
-						}
-					});
+						});
+					}
 				}
 			}
 		</script>
@@ -486,16 +488,16 @@
 				</select>
 
 				<label for="search">Search: </label>
-				<input type="text" size="25" name="search" id="search" />
+				<input type="text" size="25" name="search" id="search">
 
 				<label for="show">Showing: </label>
-				<input type="text" size="4" name="show" id="show" value="10" />
+				<input type="text" size="4" name="show" id="show" value="10">
 
 				<button id="btn-search">Search</button>
 			</div>
 
 			<div id="edit-controls">
-				<button id="btn-select" accesskey="a">Select <u>A</u>ll</button>
+				<button id="btn-select" accesskey="a">Select/Unselect <u>A</u>ll</button>
 				<button id="btn-edit" accesskey="e"><u>E</u>dit Selected</button>
 				<button id="btn-remove" accesskey="d"><u>D</u>elete Selected</button>
 				<span id="edit-blurb"></span>
@@ -565,7 +567,7 @@
 					<tr>
 						<td>&nbsp;</td>
 						<td>
-							<input type="hidden" name="id" id="id" />
+							<input type="hidden" name="id" id="id">
 
 							<button accesskey="s" id="btn-save"><u>S</u>ave Detail</button>
 						</td>
