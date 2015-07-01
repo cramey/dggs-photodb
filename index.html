@@ -57,7 +57,7 @@
 					$('#edit-blurb').text('');
 
 					$(document.activeElement).blur();
-					search(false);
+					search(false, true);
 				});
 
 				$('#btn-save').click(save);
@@ -67,11 +67,11 @@
 				});
 
 				$('#btn-prev').click(function(){
-					search(true);
+					search(true, false);
 					$(document.activeElement).blur();
 				});
 				$('#btn-next').click(function(){
-					search(false);
+					search(false, false);
 					$(document.activeElement).blur();
 				});
 				$('#btn-select').click(function(){
@@ -89,7 +89,7 @@
 					return false;
 				});
 
-				search(false);
+				search(false, true);
 
 				$('#btn-return').click(function(){
 					if($('#detailcontainer').is(':visible')){
@@ -181,7 +181,7 @@
 			});
 
 
-			function search(back)
+			function search(back, dirty)
 			{
 				var obj = {
 					'id': (back ? last[0] : last[1]),
@@ -208,57 +208,60 @@
 				$.ajax({
 					url: 'list.json', dataType: 'json', data: obj,
 					success: function(json){
+						if(!json.length){
+							if(dirty){ $('#results').empty(); }
+							return;
+						}
+
 						var results = $('#results').empty().get(0);
-						if(json.length){
-							var render = function(im){
-								var alt = '';
-								if('filename' in im) alt+= im['filename'];
-								if('taken' in im){
-									if(alt.length > 0) alt += "\n";
-									alt += im['taken'];
+						var render = function(im){
+							var alt = '';
+							if('filename' in im) alt+= im['filename'];
+							if('taken' in im){
+								if(alt.length > 0) alt += "\n";
+								alt += im['taken'];
+							}
+							if('credit' in im){
+								if(alt.length > 0){
+									if('taken' in im) alt += ', ';
+									else alt += "\n";
 								}
-								if('credit' in im){
-									if(alt.length > 0){
-										if('taken' in im) alt += ', ';
-										else alt += "\n";
-									}
-									alt += im['credit'];
-								}
-								if('summary' in im){
-									if(alt.length > 0) alt += "\n";
-									alt += im['summary'];
-								}
-
-								var a = $(document.createElement('a'))
-									.attr('href', '#')
-									.attr('title', alt)
-									//.attr('id', 'img-' + im['ID'])
-									.attr('class', selected.indexOf(im['ID']) >= 0 ? 'selected' : '')
-									.prop('data', im)
-									.click(select);
-
-								var img = $(document.createElement('img'))
-									.attr('src', 'thumbnail/' + im['ID']);
-
-								a.append(img);
-								a.appendTo(results);
-							};
-
-							if(back){
-								for(var i=json.length; i--;) render(json[i]);
-
-								last[0] = json[json.length - 1]['ID'];
-								last[1] = json[0]['ID'];
-							} else {
-								for(var i=0; i < json.length; i++) render(json[i]);
-
-								last[0] = json[0]['ID'];
-								last[1] = json[json.length - 1]['ID'];
+								alt += im['credit'];
+							}
+							if('summary' in im){
+								if(alt.length > 0) alt += "\n";
+								alt += im['summary'];
 							}
 
-							if(!$('#detailcontainer').is(':visible')){
-								$('#resultscontainer').show();
-							}
+							var a = $(document.createElement('a'))
+								.attr('href', '#')
+								.attr('title', alt)
+								//.attr('id', 'img-' + im['ID'])
+								.attr('class', selected.indexOf(im['ID']) >= 0 ? 'selected' : '')
+								.prop('data', im)
+								.click(select);
+
+							var img = $(document.createElement('img'))
+								.attr('src', 'thumbnail/' + im['ID']);
+
+							a.append(img);
+							a.appendTo(results);
+						};
+
+						if(back){
+							for(var i=json.length; i--;) render(json[i]);
+
+							last[0] = json[json.length - 1]['ID'];
+							last[1] = json[0]['ID'];
+						} else {
+							for(var i=0; i < json.length; i++) render(json[i]);
+
+							last[0] = json[0]['ID'];
+							last[1] = json[json.length - 1]['ID'];
+						}
+
+						if(!$('#detailcontainer').is(':visible')){
+							$('#resultscontainer').show();
 						}
 					}
 				});
