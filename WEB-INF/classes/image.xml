@@ -5,7 +5,8 @@
 
 <mapper namespace="gov.alaska.dggs.photodb.Image">
 	<sql id="getBy">
-		SELECT i.image_id, i.filename,
+		SELECT i.image_id,
+			COALESCE(metadata->>'import-path', i.filename) AS filename,
 			i.taken, i.modified, i.entered,
 			i.summary, i.description, i.credit,
 			ST_AsGeoJSON(i.geog::GEOMETRY) AS geojson,

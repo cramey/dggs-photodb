@@ -219,6 +219,12 @@
 						var render = function(im){
 							var alt = '';
 							if('filename' in im) alt+= im['filename'];
+							if('geoJSON' in im){
+								if(alt.length > 0) alt += "\n";
+								var geojson = JSON.parse(im['geoJSON']);
+								alt += Number(geojson['coordinates'][1]).toFixed(4)
+									+ ', ' + Number(geojson['coordinates'][0]).toFixed(4);
+							}
 							if('taken' in im){
 								if(alt.length > 0) alt += "\n";
 								alt += im['taken'];
