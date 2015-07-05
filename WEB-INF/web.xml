@@ -12,6 +12,17 @@
 
 
 	<servlet>
+		<servlet-name>ImageUpload</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.ImageUploadServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ImageUpload</servlet-name>
+		<url-pattern>/upload</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
 		<servlet-name>ImageDownload</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.ImageDownloadServlet</servlet-class>
 		<init-param>
@@ -76,6 +87,12 @@
 
 	<listener>
 		<listener-class>gov.alaska.dggs.photodb.PhotoDBFactory</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>
+			org.apache.commons.fileupload.servlet.FileCleanerCleanup
+		</listener-class>
 	</listener>
 
 	<resource-ref>
