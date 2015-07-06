@@ -1,0 +1,4 @@
+<Context>
+	<ResourceLink name="jdbc/photodb" global="jdbc/photodb"
+		type="javax.sql.DataSource" />
+</Context>
