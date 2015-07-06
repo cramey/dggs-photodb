@@ -23,6 +23,20 @@
 			#preview-images { float: right; width: 400px; white-space: nowrap; overflow-x: scroll; margin-top: 16px; text-align: right; }
 			#map { float: right; height: 400px; width: 50%; clear: both; }
 			#err { text-align: right; color: red; }
+
+			#filedrop {
+				display: none;
+				text-align: center;
+				font-weight: bold;
+				border: 2px dashed #555;
+				border-radius: 8px;
+				margin: 8px 4px;
+				padding: 1em;
+			}
+			#filedrop.drag { background-color: yellow; }
+			#filestatus progress { width: 100%; }
+			#filestatus div { text-align: center; }
+
 			.leaflet-popup { opacity: 0.3 !important; }
 			.leaflet-popup:hover { opacity: 1 !important; }
 			.toggle-disable { font-size: 10px; color: red; }
@@ -37,6 +51,26 @@
 			var selected = [];
 
 			$(function(){
+        // Test for "XHR2" support - AJAX style uploads
+        var xhr2 = ('upload' in new XMLHttpRequest());
+
+        // File drag and drop API?
+        var filedrop = document.getElementById('filedrop');
+        if(xhr2 && 'ondragover' in filedrop && 'ondrop' in filedrop){
+          filedrop.style.display = 'block';
+          filedrop.addEventListener('dragover', handlehover);
+          filedrop.addEventListener('dragleave', handlehover);
+          filedrop.addEventListener('drop', handleselect);
+        }
+
+        // Can I detect changes to the files selected to upload?
+        var fileselect = document.getElementById('fileselect');
+        if(xhr2 && 'onchange' in fileselect){
+          // If so, don't bother with the submit button
+          document.getElementById('filesubmit').style.display = 'none';
+          fileselect.addEventListener('change', handleselect);
+        }
+
 				// This feels kind of dirty, but it works and solves the
 				// problem of floating, overflow constrained elements
 				// with dynamic width
@@ -97,7 +131,7 @@
 					if($('#detailcontainer').is(':visible')){
 						$(document.activeElement).blur();
 						$('#detailcontainer').hide();
-						$('#controlcontainer, #resultscontainer').show();
+						$('#controlcontainer, #resultscontainer, #uploadcontainer').show();
 					}
 				});
 				//$('#btn-save').click(save);
@@ -365,7 +399,7 @@
 								toggleDisabled(v, false);
 							});
 
-							$('#controlcontainer, #resultscontainer').hide();
+							$('#controlcontainer, #resultscontainer, #uploadcontainer').hide();
 							$('#err').empty();
 							$('#detailcontainer').show();
 
@@ -476,6 +510,101 @@
 						});
 					}
 				}
+			}
+
+
+      function handlehover(e)
+      {
+        e.stopPropagation();
+        e.preventDefault();
+        e.target.className = (e.type == 'dragover' ? 'drag' : '');
+      }
+
+
+      function handleselect(e)
+      {
+        handlehover(e);
+
+        var files = e.target.files || e.dataTransfer.files;
+				var formdata = new FormData();
+        for(var i = 0; i < files.length; i++){
+					formdata.append('file'+i, files[i]);
+				}
+
+				document.getElementById('filecontrol').style.display = 'none';
+				clearstatus();
+
+				var xhr = new XMLHttpRequest();
+				xhr.upload.addEventListener('progress', handleprogress, false);
+				xhr.addEventListener('load', handlecomplete, false);
+				xhr.open('POST', 'upload', true);
+				xhr.send(formdata);
+      }
+
+			function handleprogress(event)
+			{
+				var filestatus = document.getElementById('filestatus');
+				
+				var display = document.getElementById('filedisplay');
+				if(!display){
+					display = document.createElement('div');
+					display.id = 'filedisplay';
+					filestatus.appendChild(display);
+				}
+
+				var overall = document.getElementById('fileoverall');
+				if(!overall){
+					overall = document.createElement('progress');
+					overall.id = 'fileoverall';
+					overall.max = event.total;
+					filestatus.appendChild(overall);
+				}
+
+				overall.value = event.loaded;
+				while(display.firstChild){
+					display.removeChild(display.firstChild);
+				}
+				display.appendChild(document.createTextNode(
+					'Uploaded ' + event.loaded +
+					' of ' + event.total + ' bytes'
+				));
+			}
+
+
+			function handlecomplete(event)
+			{
+				document.getElementById('fileselect').value = '';
+				document.getElementById('filecontrol').style.display = 'block';
+				var filestatus = clearstatus();
+				
+				// Deal with straight-up HTTP errors
+				if(event.target.status != 200){
+					return alert(event.target.responseText);
+				}
+
+				var result = JSON.parse(event.target.responseText);
+				if('errors' in result){
+					var msg = 'Error occured during upload: ';
+					for(var i = 0; i < result['errors'].length; i++){
+						msg += ("\n" + result['errors'][i]);
+					}
+					alert(msg);
+				}
+
+				if('ids' in result){
+					selected = result['ids'];
+					detail();
+				}
+			}
+
+
+			function clearstatus()
+			{
+				var filestatus = document.getElementById('filestatus');
+				while(filestatus.firstChild){
+					filestatus.removeChild(filestatus.firstChild);
+				}
+				return filestatus;
 			}
 		</script>
 	</head>
@@ -591,5 +720,19 @@
 			<div class="clearb"></div>
 			<div id="preview-images"></div>
 		</fieldset>
+
+    <form action="upload" method="POST" enctype="multipart/form-data">
+      <fieldset id="uploadcontainer">
+        <legend>Upload File(s)</legend>
+
+				<div id="filecontrol">
+					Select files: <input type="file" id="fileselect" name="files" multiple="multiple">
+					<input type="submit" id="filesubmit" value="Upload">
+
+					<div id="filedrop">or drag and drop files here</div>
+				</div>
+				<div id="filestatus"></div>
+      </fieldset>
+    </form>
 	</body>
 </html>
