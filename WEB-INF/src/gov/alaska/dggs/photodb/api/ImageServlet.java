@@ -52,6 +52,7 @@ public class ImageServlet extends HttpServlet
 				if(image == null) throw new Exception("Image not found.");
 
 				if("delete".equals(request.getParameter("action"))){
+					sess.delete("gov.alaska.dggs.photodb.Image.deleteAllTags", image);
 					int r = sess.delete("gov.alaska.dggs.photodb.Image.delete", image);
 					if(r < 1) throw new Exception("Delete failed.");
 				} else {
@@ -167,6 +168,8 @@ public class ImageServlet extends HttpServlet
 			serializer.serialize(out, response.getWriter());
 
 		} catch(Exception ex){
+			sess.rollback();
+
 			response.setStatus(500);
 			response.setContentType("text/plain");
 			response.getOutputStream().print(ex.getMessage());

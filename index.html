@@ -47,8 +47,15 @@
 		<script src="js/L.Control.MousePosition.js"></script>
 		<script>
 			var map, marker = null;
+			// Last is the last image_id seen. 0 is the lowest of the last
+			// seen, and 1 is the highest.
 			var last = [0,0];
 			var selected = [];
+
+			// Directional controls for search modes
+			var REFRESH = 0;
+			var BACK    = 1;
+			var FORWARD = 2;
 
 			$(function(){
         // Test for "XHR2" support - AJAX style uploads
@@ -91,7 +98,7 @@
 					$('#edit-blurb').text('');
 
 					$(document.activeElement).blur();
-					search(false, true);
+					search(FORWARD, true);
 				});
 
 				$('#btn-remove').click(remove);
@@ -103,11 +110,11 @@
 				});
 
 				$('#btn-prev').click(function(){
-					search(true, false);
+					search(BACK, false);
 					$(document.activeElement).blur();
 				});
 				$('#btn-next').click(function(){
-					search(false, false);
+					search(FORWARD, false);
 					$(document.activeElement).blur();
 				});
 				$('#btn-select').click(function(){
@@ -125,7 +132,7 @@
 					return false;
 				});
 
-				search(false, true);
+				search(FORWARD, true);
 
 				$('#btn-return').click(function(){
 					if($('#detailcontainer').is(':visible')){
@@ -216,13 +223,16 @@
 				});
 			});
 
-
-			function search(back, dirty)
+			function search(dir, dirty)
 			{
 				var obj = {
-					'id': (back ? last[0] : last[1]),
-					'back': back
+					'back': (dir == BACK ? true : false)
 				};
+				switch(dir){
+					case FORWARD: obj.id = last[1]; break;
+					case BACK: obj.id = last[0]; break;
+					case REFRESH: obj.id = Math.max(last[0] - 1, 0); break;
+				}
 
 				var fields = document.querySelectorAll(
 					'#controlcontainer input, #controlcontainer select'
@@ -278,7 +288,6 @@
 							var a = $(document.createElement('a'))
 								.attr('href', '#')
 								.attr('title', alt)
-								//.attr('id', 'img-' + im['ID'])
 								.attr('class', selected.indexOf(im['ID']) >= 0 ? 'selected' : '')
 								.prop('data', im)
 								.click(select);
@@ -290,7 +299,7 @@
 							a.appendTo(results);
 						};
 
-						if(back){
+						if(dir == BACK){
 							for(var i=json.length; i--;) render(json[i]);
 
 							last[0] = json[json.length - 1]['ID'];
@@ -504,7 +513,7 @@
 								if('success' in json && json['success']){
 									selected = [];
 									$('#edit-blurb').text('');
-									search(true, false);
+									search(REFRESH, true);
 								}
 							}
 						});
@@ -532,16 +541,16 @@
 				}
 
 				document.getElementById('filecontrol').style.display = 'none';
-				clearstatus();
+				clearStatus();
 
 				var xhr = new XMLHttpRequest();
-				xhr.upload.addEventListener('progress', handleprogress, false);
-				xhr.addEventListener('load', handlecomplete, false);
+				xhr.upload.addEventListener('progress', handleProgress, false);
+				xhr.addEventListener('load', handleComplete, false);
 				xhr.open('POST', 'upload', true);
 				xhr.send(formdata);
       }
 
-			function handleprogress(event)
+			function handleProgress(event)
 			{
 				var filestatus = document.getElementById('filestatus');
 				
@@ -571,11 +580,11 @@
 			}
 
 
-			function handlecomplete(event)
+			function handleComplete(event)
 			{
 				document.getElementById('fileselect').value = '';
 				document.getElementById('filecontrol').style.display = 'block';
-				var filestatus = clearstatus();
+				var filestatus = clearStatus();
 				
 				// Deal with straight-up HTTP errors
 				if(event.target.status != 200){
@@ -598,7 +607,7 @@
 			}
 
 
-			function clearstatus()
+			function clearStatus()
 			{
 				var filestatus = document.getElementById('filestatus');
 				while(filestatus.firstChild){

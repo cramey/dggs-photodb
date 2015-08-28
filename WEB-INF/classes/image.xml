@@ -95,6 +95,11 @@
 	</delete>
 
 
+	<delete id="deleteAllTags">
+		DELETE FROM image_tag WHERE image_id = #{id}
+	</delete>
+
+
 	<delete id="delete">
 		DELETE FROM image WHERE image_id = #{id}
 	</delete>
