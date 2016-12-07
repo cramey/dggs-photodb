@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Photo Database</title>
+		<link rel="stylesheet" href="js/leaflet-0.7.3.css">
+		<link rel="stylesheet" href="js/L.Control.MousePosition.css">
+		<style>
+			#edit-controls, #search-controls { padding: 4px 8px; }
+			#edit-controls { text-align: center; }
+			#detailcontainer { display: none; }
+			#detailcontainer label { display: block; }
+			#detail { margin: 20px 0px 0px 15px; }
+			#detail th, #detail td { text-align: left; vertical-align: top; }
+			#results { text-align: center; }
+			#results a { margin: 4px 8px; display: inline-block; border: 2px solid transparent; }
+			#results a img { vertical-align: text-top; }
+			#results a.selected { background-color: blue; border: 2px solid blue; }
+			#results a.selected img { opacity: 0.75; }
+			#btn-prev, #page-next { margin: 4px 8px; }
+			#btn-prev { float: left; }
+			#btn-next { float: right; }
+			#btn-save { float: right; }
+			#preview-images { float: right; width: 400px; white-space: nowrap; overflow-x: scroll; margin-top: 16px; text-align: right; }
+			#map { float: right; height: 400px; width: 50%; clear: both; }
+			#err { text-align: right; color: red; }
+
+			#filedrop {
+				display: none;
+				text-align: center;
+				font-weight: bold;
+				border: 2px dashed #555;
+				border-radius: 8px;
+				margin: 8px 4px;
+				padding: 1em;
+			}
+			#filedrop.drag { background-color: yellow; }
+			#filestatus progress { width: 100%; }
+			#filestatus div { text-align: center; }
+
+			.leaflet-popup { opacity: 0.3 !important; }
+			.leaflet-popup:hover { opacity: 1 !important; }
+			.toggle-disable { font-size: 10px; color: red; }
+			.clearb { clear: both; }
+		</style>
+		<script src="js/jquery-2.1.3.min.js"></script>
+		<script src="js/leaflet-0.7.3.min.js"></script>
+		<script src="js/L.Control.MousePosition.js"></script>
+		<script>
+			var map, marker = null;
+			// Last is the last image_id seen. 0 is the lowest of the last
+			// seen, and 1 is the highest.
+			var last = [0,0];
+			var selected = [];
+
+			// Directional controls for search modes
+			var REFRESH = 0;
+			var BACK    = 1;
+			var FORWARD = 2;
+
+			$(function(){
+        // Test for "XHR2" support - AJAX style uploads
+        var xhr2 = ('upload' in new XMLHttpRequest());
+
+        // File drag and drop API?
+        var filedrop = document.getElementById('filedrop');
+        if(xhr2 && 'ondragover' in filedrop && 'ondrop' in filedrop){
+          filedrop.style.display = 'block';
+          filedrop.addEventListener('dragover', handlehover);
+          filedrop.addEventListener('dragleave', handlehover);
+          filedrop.addEventListener('drop', handleselect);
+        }
+
+        // Can I detect changes to the files selected to upload?
+        var fileselect = document.getElementById('fileselect');
+        if(xhr2 && 'onchange' in fileselect){
+          // If so, don't bother with the submit button
+          document.getElementById('filesubmit').style.display = 'none';
+          fileselect.addEventListener('change', handleselect);
+        }
+
+				// This feels kind of dirty, but it works and solves the
+				// problem of floating, overflow constrained elements
+				// with dynamic width
+				$(window).resize(function(){
+					$('#preview-images').width($(window).width() / 2);
+				});
+				$('#preview-images').width($(window).width() / 2);
+
+				// Get rid of that bracket mess
+				$.ajaxSetup({ traditional: true });
+
+				$('#btn-search').click(function(){
+					// Clear last query
+					last = [0,0];
+
+					/// Clear last selected
+					selected = [];
+					$('#edit-blurb').text('');
+
+					$(document.activeElement).blur();
+					search(FORWARD, true);
+				});
+
+				$('#btn-remove').click(remove);
+
+				$('#btn-save').click(save);
+
+				$('#emptydesc, #emptylocation').change(function(){
+					$('#btn-search').click();
+				});
+
+				$('#btn-prev').click(function(){
+					search(BACK, false);
+					$(document.activeElement).blur();
+				});
+				$('#btn-next').click(function(){
+					search(FORWARD, false);
+					$(document.activeElement).blur();
+				});
+				$('#btn-select').click(function(){
+					selectAll();
+					$(document.activeElement).blur();
+				});
+
+				$('#btn-edit').click(function(){
+					detail();
+					$(document.activeElement).blur();
+				});
+
+				$('.toggle-disable').click(function(){
+					toggleDisabled(this);
+					return false;
+				});
+
+				search(FORWARD, true);
+
+				$('#btn-return').click(function(){
+					if($('#detailcontainer').is(':visible')){
+						$(document.activeElement).blur();
+						$('#detailcontainer').hide();
+						$('#controlcontainer, #resultscontainer, #uploadcontainer').show();
+					}
+				});
+				//$('#btn-save').click(save);
+
+				$('body').keyup(function(e){
+					var vis = $('#detailcontainer').is(':visible');
+					// Escape
+					if(e.which == 27 && vis) $('#btn-return').click();
+
+					if(!vis && document.activeElement == document.body){
+						// Left arrow
+						if(e.which == 37){
+							$('#btn-prev').click();
+						// Right arroe
+						} else if(e.which == 39){
+							$('#btn-next').click();
+						// 1-9
+						} else if(e.which >= 49 && e.which <= 57){
+							var i = (e.which - 49);
+							var imgs = $('#results a');
+							if(i <= imgs.length) imgs.get(i).click();
+						// 0
+						} else if(e.which == 48){
+							var imgs = $('#results a');
+							if(imgs.length > 9) imgs.get(9).click();
+						// 'a' - select all
+						} else if(e.which == 65){
+							selectAll();
+						}
+					}
+				});
+
+				// Collect our baselayers
+				var baselayers = {
+					'Open Street Maps': new L.TileLayer(
+						'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+						{ minZoom: 3, maxZoom: 16 }
+					),
+					'MapQuest Open Aerial': new L.TileLayer(
+						'http://otile4.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
+						{ minZoom: 3, maxZoom: 11 }
+					),
+					'GINA Satellite': new L.TileLayer(
+						'http://tiles.gina.alaska.edu/tilesrv/bdl/tile/{x}/{y}/{z}',
+						{ minZoom: 3, mazZoom: 15 }
+					),
+					'GINA Topographic': new L.TileLayer(
+						'http://tiles.gina.alaska.edu/tilesrv/drg/tile/{x}/{y}/{z}',
+						{ minZoom: 3, maxZoom: 12 }
+					)
+				};
+
+				var overlays = {
+					'Quadrangles': new L.TileLayer(
+						'http://tiles.gina.alaska.edu/tilesrv/quad_google/tile/{x}/{y}/{z}',
+						{ minZoom: 3, maxZoom: 16 }
+					)
+				};
+
+				// Build the map, it expects baselayers as an array
+				map = L.map('map', {
+					attributionControl: false,
+					layers: [ baselayers['Open Street Maps'] ]
+				});
+
+				// Initialize lon/lat control display on map
+				L.control.mousePosition().addTo(map);
+				// Initialize layer switcher control
+				L.control.layers(baselayers, overlays).addTo(map);
+
+				// Add a marker if there isn't one, on click
+				map.on('click', function(evt){
+					if(marker == null){
+						marker = L.marker(
+							evt.latlng,
+							{ keyboard: false, draggable: true }
+						).on('dblclick', function(evt){
+							map.removeLayer(marker);
+							marker = null;
+						}).addTo(map);
+					}
+				});
+			});
+
+			function search(dir, dirty)
+			{
+				var obj = {
+					'back': (dir == BACK ? true : false)
+				};
+				switch(dir){
+					case FORWARD: obj.id = last[1]; break;
+					case BACK: obj.id = last[0]; break;
+					case REFRESH: obj.id = Math.max(last[0] - 1, 0); break;
+				}
+
+				var fields = document.querySelectorAll(
+					'#controlcontainer input, #controlcontainer select'
+				);
+				for(var i = fields.length; i--;){
+					switch(fields[i].tagName){
+						case 'INPUT':
+							var val = fields[i].value.trim();
+							if(val.length > 0) obj[fields[i].id] = val;
+						break;
+
+						case 'SELECT':
+							var val = fields[i].options[fields[i].selectedIndex].value.trim();
+							if(val.length > 0) obj[fields[i].id] = val;
+						break;
+					}
+				}
+
+				$.ajax({
+					url: 'list.json', dataType: 'json', data: obj,
+					success: function(json){
+						if(!json.length){
+							if(dirty){ $('#results').empty(); }
+							return;
+						}
+
+						var results = $('#results').empty().get(0);
+						var render = function(im){
+							var alt = '';
+							if('filename' in im) alt+= im['filename'];
+							if('geoJSON' in im){
+								if(alt.length > 0) alt += "\n";
+								var geojson = JSON.parse(im['geoJSON']);
+								alt += Number(geojson['coordinates'][1]).toFixed(4)
+									+ ', ' + Number(geojson['coordinates'][0]).toFixed(4);
+							}
+							if('taken' in im){
+								if(alt.length > 0) alt += "\n";
+								alt += im['taken'];
+							}
+							if('credit' in im){
+								if(alt.length > 0){
+									if('taken' in im) alt += ', ';
+									else alt += "\n";
+								}
+								alt += im['credit'];
+							}
+							if('summary' in im){
+								if(alt.length > 0) alt += "\n";
+								alt += im['summary'];
+							}
+
+							var a = $(document.createElement('a'))
+								.attr('href', '#')
+								.attr('title', alt)
+								.attr('class', selected.indexOf(im['ID']) >= 0 ? 'selected' : '')
+								.prop('data', im)
+								.click(select);
+
+							var img = $(document.createElement('img'))
+								.attr('src', 'thumbnail/' + im['ID']);
+
+							a.append(img);
+							a.appendTo(results);
+						};
+
+						if(dir == BACK){
+							for(var i=json.length; i--;) render(json[i]);
+
+							last[0] = json[json.length - 1]['ID'];
+							last[1] = json[0]['ID'];
+						} else {
+							for(var i=0; i < json.length; i++) render(json[i]);
+
+							last[0] = json[0]['ID'];
+							last[1] = json[json.length - 1]['ID'];
+						}
+
+						if(!$('#detailcontainer').is(':visible')){
+							$('#resultscontainer').show();
+						}
+					}
+				});
+			}
+
+
+			function toggleDisabled(el, enabled)
+			{
+				var input, link;
+
+				if(/^a$/i.test(el.tagName)){
+					link = el;
+					input = $(link).parents('tr').find('select,input,textarea').get(0);
+				} else {
+					input = el;
+					link = $(input).parents('tr').find('.toggle-disable').get(0);
+				}
+
+				if(typeof enabled == 'undefined'){
+					enabled = $(link).text().indexOf('Enable') >= 0;
+				}
+
+				$(link)
+					.css('color', enabled ? 'green' : 'red')
+					.text(enabled ? 'Disable editing' : 'Enable editing');
+				$(input).prop('disabled', !enabled);
+			}
+
+
+			function selectAll()
+			{
+				var unselected = $('#results a').not('.selected');
+				if(unselected.length == 0){
+					$('#results a').click();
+				} else {
+					unselected.click();
+				}
+
+				if(selected.length){
+					$('#edit-blurb').text(selected.length + ' images selected');
+				} else {
+					$('#edit-blurb').text('');
+				}
+			}
+
+
+			function select()
+			{
+				$(this).blur();
+
+				if(this.className === 'selected'){
+					this.className = '';
+					var idx = selected.indexOf(this.data['ID']);
+					if(idx >= 0) selected.splice(idx, 1);
+				} else {
+					this.className = 'selected';
+					selected.push(this.data['ID']);
+				}
+
+				if(selected.length){
+					$('#edit-blurb').text(selected.length + ' images selected');
+				} else {
+					$('#edit-blurb').text('');
+				}
+
+				return false;
+			}
+
+
+			function detail()
+			{
+				if(selected.length > 0){
+					$.ajax({
+						url: 'detail.json', dataType: 'json',
+						data: { image_id: selected },
+						success: function(json){
+							var preview = $('#preview-images').empty();
+							for(i = 0; i < selected.length; i++){
+								if(i > 0) preview.append('&nbsp;');
+								var a = $(document.createElement('a'))
+									.attr('href', 'image/' + selected[i])
+									.attr('target', '_blank');
+
+								$(document.createElement('img'))
+									.attr('src', 'thumbnail/' + selected[i])
+									.appendTo(a);
+
+								a.appendTo(preview);
+							}
+
+							$('#detail').find('input, textarea').val('');
+							$('#detail').find('input, textarea, select').each(function(i,v){
+								toggleDisabled(v, false);
+							});
+
+							$('#controlcontainer, #resultscontainer, #uploadcontainer').hide();
+							$('#err').empty();
+							$('#detailcontainer').show();
+
+							map.closePopup();
+							if(marker != null){
+								map.removeLayer(marker);
+								marker = null;
+							}
+							for(i in json){
+								switch(i){
+									case 'geojson':
+										if(json[i][0]){
+											var geojson = JSON.parse(json[i][0]);
+
+											marker = L.marker(
+												// I have no idea why this is even necessary.
+												// Why are the parameters swapped?
+												[geojson.coordinates[1], geojson.coordinates[0]],
+												{ keyboard: false, draggable: true }
+											).on('dblclick', function(evt){
+												map.removeLayer(marker);
+												marker = null;
+											}).addTo(map);
+										}
+									break;
+
+									default:
+										var el = document.getElementById(i.toLowerCase());
+										if(el != null && /^(textarea|input)$/i.test(el.tagName)){
+											if(json[i].length > 0 && json[i][0]){
+												el.value = json[i][0];
+											}
+											toggleDisabled(el, json[i].length > 0);
+										}
+									break;
+								}
+							}
+
+							$('#detailcontainer').find('*').each(function(i, v){
+								if(/^(input|select|textarea)$/i.test(v.tagName) && !this.disabled){
+									this.focus();
+									return false;
+								}
+							});
+
+							map.setView([64.843611, -147.723056], 3);
+						}
+					});
+				}
+			}
+
+
+			function save()
+			{
+				var data = $('#detail input, #detail textarea').serialize();
+
+				if(marker != null){
+					if(data.length > 0) data += '&';
+					data += $.param({ 'geojson': JSON.stringify(
+						marker.toGeoJSON()['geometry']
+					)}, true);
+				}
+
+				if(data.length == 0){
+					alert('Nothing to save!');
+					return;
+				}
+
+				data += '&' + $.param({ 'image_id': selected }, true);
+
+				$('#err').empty();
+				$('#btn-save').prop('disabled', true).text('Saving.. ');
+
+				$.ajax({
+					url: 'image.json', type: 'POST',
+					data: data, dataType: 'json', 
+					success: function(json){
+						if('success' in json && json['success']){
+							$('#btn-save').prop('disabled', false).text('Save Detail');
+						}
+					},
+					error: function(xhr){
+						$('#btn-save').prop('disabled', false).text('Save Detail');
+						$('#err').text('Error saving: ' + xhr.responseText);
+					}
+				});
+			}
+
+
+			function remove()
+			{
+				$(document.activeElement).blur();
+				if(selected.length > 0){
+					var msg = "Are you sure you want to delete these photos?\n" +
+						"This cannot be undone.";
+					if(confirm(msg)){
+						var id = $('#id').val();
+						$.ajax({
+							url: 'image.json', type: 'POST', dataType: 'json',
+							data: { 'action': 'delete', 'image_id': selected },
+							success: function(json){
+								if('success' in json && json['success']){
+									selected = [];
+									$('#edit-blurb').text('');
+									search(REFRESH, true);
+								}
+							}
+						});
+					}
+				}
+			}
+
+
+      function handlehover(e)
+      {
+        e.stopPropagation();
+        e.preventDefault();
+        e.target.className = (e.type == 'dragover' ? 'drag' : '');
+      }
+
+
+      function handleselect(e)
+      {
+        handlehover(e);
+
+        var files = e.target.files || e.dataTransfer.files;
+				var formdata = new FormData();
+        for(var i = 0; i < files.length; i++){
+					formdata.append('file'+i, files[i]);
+				}
+
+				document.getElementById('filecontrol').style.display = 'none';
+				clearStatus();
+
+				var xhr = new XMLHttpRequest();
+				xhr.upload.addEventListener('progress', handleProgress, false);
+				xhr.addEventListener('load', handleComplete, false);
+				xhr.open('POST', 'upload', true);
+				xhr.send(formdata);
+      }
+
+			function handleProgress(event)
+			{
+				var filestatus = document.getElementById('filestatus');
+				
+				var display = document.getElementById('filedisplay');
+				if(!display){
+					display = document.createElement('div');
+					display.id = 'filedisplay';
+					filestatus.appendChild(display);
+				}
+
+				var overall = document.getElementById('fileoverall');
+				if(!overall){
+					overall = document.createElement('progress');
+					overall.id = 'fileoverall';
+					overall.max = event.total;
+					filestatus.appendChild(overall);
+				}
+
+				overall.value = event.loaded;
+				while(display.firstChild){
+					display.removeChild(display.firstChild);
+				}
+				display.appendChild(document.createTextNode(
+					'Uploaded ' + event.loaded +
+					' of ' + event.total + ' bytes'
+				));
+			}
+
+
+			function handleComplete(event)
+			{
+				document.getElementById('fileselect').value = '';
+				document.getElementById('filecontrol').style.display = 'block';
+				var filestatus = clearStatus();
+				
+				// Deal with straight-up HTTP errors
+				if(event.target.status != 200){
+					return alert(event.target.responseText);
+				}
+
+				var result = JSON.parse(event.target.responseText);
+				if('errors' in result){
+					var msg = 'Error occured during upload: ';
+					for(var i = 0; i < result['errors'].length; i++){
+						msg += ("\n" + result['errors'][i]);
+					}
+					alert(msg);
+				}
+
+				if('ids' in result){
+					selected = result['ids'];
+					detail();
+				}
+			}
+
+
+			function clearStatus()
+			{
+				var filestatus = document.getElementById('filestatus');
+				while(filestatus.firstChild){
+					filestatus.removeChild(filestatus.firstChild);
+				}
+				return filestatus;
+			}
+		</script>
+	</head>
+	<body>
+		<fieldset id="controlcontainer">
+			<legend>Search</legend>
+			<button title="Previous Page - Left Arrow" id="btn-prev">Previous Page</button>
+			<button title="Next page - Right Arrow" id="btn-next">Next Page</button>
+
+			<div id="search-controls">
+				<label for="emptydesc">Description: </label>
+				<select name="emptydesc" id="emptydesc">
+					<option value="" selected="selected">Any</option>
+					<option value="true">Only Empty</option>
+					<option value="false">Only Filled</option>
+				</select>
+
+				<label for="emptylocation">Location: </label>
+				<select name="emptylocation" id="emptylocation">
+					<option value="" selected="selected">Any</option>
+					<option value="true">Only Empty</option>
+					<option value="false">Only Filled</option>
+				</select>
+
+				<label for="search">Search: </label>
+				<input type="text" size="25" name="search" id="search">
+
+				<label for="show">Showing: </label>
+				<input type="text" size="4" name="show" id="show" value="10">
+
+				<button id="btn-search">Search</button>
+			</div>
+
+			<div id="edit-controls">
+				<button id="btn-select" accesskey="a">Select/Unselect <u>A</u>ll</button>
+				<button id="btn-edit" accesskey="e"><u>E</u>dit Selected</button>
+				<button id="btn-remove" accesskey="d"><u>D</u>elete Selected</button>
+				<span id="edit-blurb"></span>
+			</div>
+		</fieldset>
+
+		<fieldset id="resultscontainer">
+			<legend>Results</legend>
+			<div id="results"></div>
+		</fieldset>
+
+		<fieldset id="detailcontainer">
+			<legend>Detail</legend>
+
+			<div id="map"></div>
+
+			<button title="Return to Search - Escape" id="btn-return">Return to Search</button>
+
+			<table id="detail">
+				<tbody>
+					<tr>
+						<th>
+							Date Taken:<br>
+							<a class="toggle-disable" href="#taken">Enable editing</a>
+						</th>
+						<td>
+							<input type="text" name="taken" id="taken" tabindex="1" autocomplete="off" size="9" disabled>
+						</td>
+					</tr>
+					<tr>
+						<th>
+							Credit:<br>
+							<a class="toggle-disable" href="#credit">Enable editing</a>
+						</th>
+						<td>
+							<textarea name="credit" id="credit" cols="30" rows="2" tabindex="2" autocomplete="off" disabled></textarea>
+						</td>
+					</tr>
+					<tr>
+						<th>
+							Summary:<br>
+							<a class="toggle-disable" href="#summary">Enable editing</a>
+						</th>
+						<td>
+							<textarea name="summary" id="summary" cols="30" rows="2" tabindex="3" autocomplete="off" disabled></textarea>
+						</td>
+					</tr>
+					<tr>
+						<th>
+							Description:<br>
+							<a class="toggle-disable" href="#description">Enable editing</a>
+						</th>
+						<td>
+							<textarea name="description" id="description" cols="35" rows="5" tabindex="4" autocomplete="off" disabled></textarea>
+						</td>
+					</tr>
+					<tr>
+						<th>
+							Tags<br>
+							<a class="toggle-disable" href="#tags">Enable editing</a>
+						</th>
+						<td>
+							<input type="text" name="tags" id="tags" size="30" tabindex="5" disabled>
+						</td>
+					</tr>
+					<tr><td colspan="2">&nbsp;</td></tr>
+					<tr>
+						<td>&nbsp;</td>
+						<td>
+							<input type="hidden" name="id" id="id">
+
+							<button accesskey="s" id="btn-save"><u>S</u>ave Detail</button>
+						</td>
+					</tr>
+					<tr><td colspan="2" id="err"></td></tr>
+				</tbody>
+			</table>
+			<div class="clearb"></div>
+			<div id="preview-images"></div>
+		</fieldset>
+
+    <form action="upload" method="POST" enctype="multipart/form-data">
+      <fieldset id="uploadcontainer">
+        <legend>Upload File(s)</legend>
+
+				<div id="filecontrol">
+					Select files: <input type="file" id="fileselect" name="files" multiple="multiple">
+					<input type="submit" id="filesubmit" value="Upload">
+
+					<div id="filedrop">or drag and drop files here</div>
+				</div>
+				<div id="filestatus"></div>
+      </fieldset>
+    </form>
+	</body>
+</html>

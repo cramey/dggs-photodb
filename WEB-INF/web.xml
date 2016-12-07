@@ -18,7 +18,7 @@
 
 	<servlet-mapping>
 		<servlet-name>ImageUpload</servlet-name>
-		<url-pattern>/upload</url-pattern>
+		<url-pattern>/private/upload</url-pattern>
 	</servlet-mapping>
 
 
