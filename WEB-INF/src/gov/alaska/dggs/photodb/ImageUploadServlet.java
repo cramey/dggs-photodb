@@ -66,8 +66,10 @@ public class ImageUploadServlet extends HttpServlet
 	{
 		ServletContext context = getServletContext();
 
-		List ids = new ArrayList();
-		List errors = new ArrayList();
+		List<Integer> ids = new ArrayList<Integer>();
+		List<String> errors = new ArrayList<String>();
+
+		boolean usejson = false;
 
 		SqlSession sess = PhotoDBFactory.openSession();
 		Connection conn = sess.getConnection();
@@ -89,7 +91,8 @@ public class ImageUploadServlet extends HttpServlet
 						"credit, description, metadata, geog " +
 					") VALUES (" +
 						"?, ?, ?, ?, " +
-						"?, ?, ?::JSONB, " +
+						"?, ?, " + 
+						"(regexp_replace(?::TEXT, '\\\\u0000', '', 'g'))::JSONB, " +
 						"ST_Transform(ST_SetSRID(ST_MakePoint(?,?), ?), 4326)::GEOGRAPHY" +
 					")",
 					PreparedStatement.RETURN_GENERATED_KEYS
@@ -97,7 +100,12 @@ public class ImageUploadServlet extends HttpServlet
 
 				for(FileItem item : items){
 					// Ignore form fields
-					if(item.isFormField()) continue;
+					if(item.isFormField()){
+						if("format".equals(item.getFieldName()) && "json".equalsIgnoreCase(item.getString())){
+							usejson = true;
+						}
+						continue;
+					}
 
 					ps.clearParameters();
 					
@@ -313,13 +321,33 @@ public class ImageUploadServlet extends HttpServlet
 				conn.commit();
 			}
 
-			Map out = new HashMap();
-			if(!errors.isEmpty()) out.put("errors", errors);
-			if(!ids.isEmpty()) out.put("ids", ids);
+			if(usejson){
+				Map out = new HashMap();
+				if(!errors.isEmpty()) out.put("errors", errors);
+				if(!ids.isEmpty()) out.put("ids", ids);
 
-			response.setContentType("application/json");
-			serializer.serialize(out, response.getWriter());
-
+				response.setContentType("application/json");
+				serializer.serialize(out, response.getWriter());
+			} else {
+				if(errors.isEmpty()){
+					StringBuilder b = new StringBuilder();
+					for(Integer id : ids){
+						if(b.length() > 0) b.append(",");
+						b.append(id);
+					}
+					response.sendRedirect("index.html?ids=" + b.toString());
+				} else {
+					response.setContentType("text/plain");
+					StringBuilder b = new StringBuilder(
+						"Errors occured during upload:"
+					);
+					for(String err : errors){
+						b.append("\n\t");
+						b.append(err);
+					}
+					response.getOutputStream().print(b.toString());
+				}
+			}
 		} catch(Exception ex){
 			response.setStatus(500);
 			response.setContentType("text/plain");
