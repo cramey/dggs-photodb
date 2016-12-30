@@ -27,6 +27,7 @@ import gov.alaska.dggs.photodb.model.Image;
 import gov.alaska.dggs.transformer.ExcludeTransformer;
 import gov.alaska.dggs.transformer.IterableTransformer;
 import gov.alaska.dggs.transformer.SQLArrayTransformer;
+import gov.alaska.dggs.transformer.RawTransformer;
 
 
 public class ImageDetailServlet extends HttpServlet
@@ -44,8 +45,9 @@ public class ImageDetailServlet extends HttpServlet
 		serializer.exclude("class");
 
 		serializer.transform(new DateTransformer("M/d/yyyy"), Date.class);
-		//serializer.transform(new ExcludeTransformer(), void.class);
+		serializer.transform(new ExcludeTransformer(), void.class);
 		serializer.transform(new SQLArrayTransformer(), java.sql.Array.class);
+		serializer.transform(new RawTransformer(), "geojson");
 	}
 
 
