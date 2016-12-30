@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="IE=edge">
 		<title>Alaska Division of Geological &amp; Geophysical Surveys Photo Database</title>
-		<link rel="stylesheet" href="css/apptmpl.min.css">
+		<link rel="stylesheet" href="../css/apptmpl.min.css">
 		<style>
 			#search-field, #search-button {
 				box-sizing: content-box;
@@ -84,7 +84,7 @@
 							}
 						}
 					};
-					xhr.open('POST', 'list.json', true);
+					xhr.open('POST', '../list.json', true);
 					xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 					xhr.send(params);
 				}
@@ -97,7 +97,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
-				<a href="help">Help</a>
+				<a href="../help">Help</a>
 			</div>
 
 			<div class="apptmpl-banner">
@@ -110,7 +110,7 @@
 				<a href="http://alaska.gov">State of Alaska</a> &gt;
 				<a href="http://dnr.alaska.gov">Natural Resources</a> &gt;
 				<a href="http://dggs.alaska.gov">Geological &amp; Geophysical Surveys</a> &gt;
-				<a href=".">Photo Database</a>
+				<a href="../">Photo Database</a>
 			</div>
 
 			<div class="apptmpl-content">
@@ -121,11 +121,11 @@
 				<div id="search-results"></div>
 			</div>
 		</div>
-		<script src="js/mustache-2.3.0.min.js"></script>
+		<script src="../js/mustache-2.3.0.min.js"></script>
 		<script id="tmpl-search" type="x-tmpl-mustache">
 			{{#.}}
-				<a href="detail.html#{{ID}}" title="{{filename}}">
-					<img src="thumbnail/{{ID}}">
+				<a href="javascript:void(0)" title="{{filename}}">
+					<img src="../thumbnail/{{ID}}">
 					<div>{{summary}}</div>
 					<div>{{credit}} {{taken}}</div>
 				</a>
