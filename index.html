@@ -19,7 +19,8 @@
 				visibility: hidden;
 			}
 			#search-control { margin: 0 4px; }
-			#search-field, #search-button {
+			#search-control-x1, #search-control-x2 { display: none; }
+			#search-field, #search-button, #search-prev, #search-next {
 				box-sizing: content-box;
 				vertical-align: middle;
 				border-radius: 5px;
@@ -34,7 +35,7 @@
 			}
 			#search-button { padding: 2px 8px; }
 			#search-control {
-				text-align: right;
+				text-align: center;
 				margin-bottom: 16px;
 			}
 			#search-results a {
@@ -55,7 +56,7 @@
 		<script src="js/leaflet.js"></script>
 		<script src="js/leaflet.mouseposition.js"></script>
 		<script>
-			var map;
+			var map, last;
 			var baselayers = {
 				'Open Street Maps Monochrome': L.tileLayer(
 					'http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png',
@@ -67,7 +68,7 @@
 				),
 				'OpenTopoMap': new L.TileLayer(
 					'http://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-					{ minZoom: 3, maxZoom: 17, zIndex: 3  }
+					{ minZoom: 3, maxZoom: 17, zIndex: 3 }
 				),
 				'ESRI Imagery': new L.TileLayer(
 					'//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -107,7 +108,7 @@
 				'PLSS (BLM)': new L.tileLayer.wms(
 					'http://www.geocommunicator.gov/arcgis/services/PLSS/MapServer/WMSServer',
 					{
-						'layers': '1,2,3,4,5,6,7,8,9,10,11,12,13',
+						layers: '1,2,3,4,5,6,7,8,9,10,11,12,13',
 						transparent: true,
 						format: 'image/png',
 						minZoom: 3, maxZoom: 16, zIndex: 12
@@ -123,6 +124,12 @@
 			{
 				var search_button = document.getElementById('search-button');
 				if(search_button) search_button.onclick = search;
+
+				var search_prev = document.getElementById('search-prev');
+				if(search_prev) search_prev.onclick = function(){ search(true); };
+
+				var search_next = document.getElementById('search-next');
+				if(search_next) search_next.onclick = function(){ search(false); };
 
 				var q = document.getElementById('search-field');
 				if(q){
@@ -181,61 +188,85 @@
 				));
 			}
 
-			function search()
+			function showControls()
+			{
+				var x1 = document.getElementById('search-control-x1');
+				if(x1) x1.style.display = 'inline';
+				var x2 = document.getElementById('search-control-x2');
+				if(x2) x2.style.display = 'inline';
+			}
+
+			function search(back)
 			{
 				var q = document.getElementById('search-field');
-				if(q && q.value.length > 0){
-					var params = 'search=' + encodeURIComponent(q.value);
-					var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
-					xhr.onreadystatechange = function(){
-						if(xhr.readyState === 4){
-							if(xhr.status === 200){
-								var obj = JSON.parse(xhr.responseText);
-								document.location.hash = '#' + params;
+				if(!q || q.value.length < 1) return;
 
-								if('console' in window) console.log(obj);
+				var query = 'search=' + encodeURIComponent(q.value);
 
-								features.clearLayers();
-								for(var i = 0; i < obj.length; i++){
-									var o = obj[i];
-									if('geoJSON' in o){
-										// Clone the geojson object, allowing
-										// the original reference to be freed
-										var geojson = {
-											type: 'Feature', 
-											properties: {
-												popup: Mustache.render(
-													document.getElementById('tmpl-popup').innerHTML,
-													o
-												),
-												color: '#9f00ff'
-											},
-											geometry: JSON.parse(JSON.stringify(o['geoJSON']))
-										};
-										features.addData(geojson);
-									}
-								}
+				var page = document.getElementById('search-page');
+				var pg = page.value;
+				if(query !== last){
+					pg = 0;
+				} else if(typeof back === 'boolean'){
+					pg = Math.max(0, Number(page.value) + (back ? -1 : 1));
+				}
 
-								map.getContainer().style.visibility = 'visible';
+				var params = query + '&page=' + pg;
+					
+				var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState === 4){
+						if(xhr.status === 200){
+							showControls();
+							var obj = JSON.parse(xhr.responseText);
 
-								var map_el = document.getElementById('map');
-								if(map_el) map_el.style.display = 'block';
+							if(obj.length < 1) return;
 
-								var results = document.getElementById('search-results');
-								var tmpl = document.getElementById('tmpl-search');
-								if(results && tmpl){
-									results.innerHTML = Mustache.render(
-										document.getElementById('tmpl-search').innerHTML,
-										obj
-									);
+							last = query;
+							page.value = pg;
+							document.location.hash = '#' + params;
+
+
+							features.clearLayers();
+							for(var i = 0; i < obj.length; i++){
+								var o = obj[i];
+								if('geoJSON' in o){
+									// Clone the geojson object, allowing
+									// the original reference to be freed
+									var geojson = {
+										type: 'Feature',
+										properties: {
+											popup: Mustache.render(
+												document.getElementById('tmpl-popup').innerHTML,
+												o
+											),
+											color: '#9f00ff'
+										},
+										geometry: JSON.parse(JSON.stringify(o['geoJSON']))
+									};
+									features.addData(geojson);
 								}
 							}
+
+							map.getContainer().style.visibility = 'visible';
+
+							var map_el = document.getElementById('map');
+							if(map_el) map_el.style.display = 'block';
+
+							var results = document.getElementById('search-results');
+							var tmpl = document.getElementById('tmpl-search');
+							if(results && tmpl){
+								results.innerHTML = Mustache.render(
+									document.getElementById('tmpl-search').innerHTML,
+									obj
+								);
+							}
 						}
-					};
-					xhr.open('POST', 'list.json', true);
-					xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-					xhr.send(params);
-				}
+					}
+				};
+				xhr.open('POST', 'list.json', true);
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+				xhr.send(params);
 			}
 
 			function mirroredLayer(data, style){
@@ -298,8 +329,15 @@
 
 			<div class="apptmpl-content">
 				<div id="search-control">
+					<input type="hidden" name="search-page" id="search-page" value="0">
+					<span id="search-control-x1">
+						<button id="search-prev">Previous</button> |
+					</span>
 					<input type="text" id="search-field" name="search-field" placeholder="Search for .. " autocomplete="off">
 					<button id="search-button">Search</button>
+					<span id="search-control-x2">
+						| <button id="search-next">Next</button>
+					</span>
 				</div>
 				<div id="map"></div>
 				<div id="search-results"></div>

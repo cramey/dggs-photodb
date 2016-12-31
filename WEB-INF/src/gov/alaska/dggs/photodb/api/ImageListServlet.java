@@ -61,10 +61,6 @@ public class ImageListServlet extends HttpServlet
 	{
 		ServletContext context = getServletContext();
 
-		Integer id = 0;
-		try { id = Integer.valueOf(request.getParameter("id")); }
-		catch(Exception ex){ }
-
 		// Aggressively disable cache
 		response.setHeader("Cache-Control","no-cache");
 		response.setHeader("Pragma","no-cache");
@@ -73,7 +69,6 @@ public class ImageListServlet extends HttpServlet
 		SqlSession sess = PhotoDBFactory.openSession();
 		try {
 			HashMap map = new HashMap();
-			map.put("id", id);
 
 			String search = request.getParameter("search");
 			if(search != null && search.length() > 0){
@@ -94,17 +89,16 @@ public class ImageListServlet extends HttpServlet
 				);
 			}
 
-			String back = request.getParameter("back");
-			if(back != null && back.length() > 0){
-				map.put("back",
-					Boolean.valueOf(request.getParameter("back"))
-				);
-			}
-
-			Integer show = 6;
-			try { show = Integer.valueOf(request.getParameter("show")); }
+			Integer limit = 6;
+			try { limit = Integer.valueOf(request.getParameter("show")); }
 			catch(Exception ex){ }
-			map.put("show", show);
+
+			Integer page = 0;
+			try { page = Integer.valueOf(request.getParameter("page")); }
+			catch(Exception ex){ }
+
+			map.put("limit", limit);
+			map.put("offset", (limit * page));
 
 			List output = sess.selectList(
 				"gov.alaska.dggs.photodb.Image.getFromID", map

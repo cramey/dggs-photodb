@@ -24,15 +24,7 @@
 	<select id="getFromID" resultSetType="FORWARD_ONLY" parameterType="Map" resultMap="ImageMap">
 		<include refid="getBy" />
 		FROM image AS i
-		WHERE 
-		<choose>
-			<when test="back == true">
-				i.image_id &lt; #{id}
-			</when>
-			<otherwise>
-				i.image_id &gt; #{id}
-			</otherwise>
-		</choose>
+		WHERE 1=1
 		<choose>
 			<when test="emptydesc == true">
 				AND i.description IS NULL
@@ -52,15 +44,9 @@
 		<if test="search != null">
 			AND search @@ plainto_tsquery('simple', #{search})
 		</if>
-		<choose>
-			<when test="back == true">
-				ORDER BY i.image_id DESC
-			</when>
-			<otherwise>
-				ORDER BY i.image_id ASC
-			</otherwise>
-		</choose>
-		LIMIT ${show}
+		ORDER BY i.image_id ASC
+		OFFSET ${offset}
+		LIMIT ${limit}
 	</select>
 
 
