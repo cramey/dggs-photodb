@@ -135,6 +135,10 @@
 
 			function init()
 			{
+				// Fix for Leaflet Issue #5180
+				// See: https://github.com/Leaflet/Leaflet/issues/5180
+				if(!L.Browser.mobile) L.Browser.touch = false;
+
 				var search_button = document.getElementById('search-button');
 				if(search_button) search_button.onclick = search;
 
@@ -346,8 +350,8 @@
 					<div id="search-results-control">
 						<button id="search-prev">Previous Page</button> |
 						Showing: <select name="search-show" id="search-show">
-							<option value="6">6</option>
-							<option value="12" selected>12</option>
+							<option value="6" selected>6</option>
+							<option value="12">12</option>
 							<option value="24">24</option>
 							<option value="96">96</option>
 						</select>
