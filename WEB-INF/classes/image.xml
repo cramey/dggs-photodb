@@ -44,6 +44,11 @@
 		<if test="search != null">
 			AND search @@ plainto_tsquery('simple', #{search})
 		</if>
+		<if test="aoi != null">
+			AND ST_intersects(
+				i.geog, ST_SetSRID(ST_GeomFromGeoJSON(#{aoi}), 4326)
+			)
+		</if>
 		ORDER BY i.image_id ASC
 		OFFSET ${offset}
 		LIMIT ${limit}

@@ -75,6 +75,11 @@ public class ImageListServlet extends HttpServlet
 				map.put("search", request.getParameter("search"));
 			}
 
+			String aoi = request.getParameter("aoi");
+			if(aoi != null && aoi.length() > 0){
+				map.put("aoi", request.getParameter("aoi"));
+			}
+
 			String emptydesc = request.getParameter("emptydesc");
 			if(emptydesc != null && emptydesc.length() > 0){
 				map.put("emptydesc",
