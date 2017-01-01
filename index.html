@@ -8,18 +8,16 @@
 		<link rel="stylesheet" href="js/leaflet.css">
 		<link rel="stylesheet" href="js/leaflet.mouseposition.css">
 		<style>
+			.apptmpl-container { min-width: 500px !important; }
 			#map {
-				height: 350px;
-				width: 50%;
-				min-width: 350px;
-				max-width: 550px;
-				float: right;
+				height: 300px;
+				width: 300px;
 				border: 1px solid #aaa;
-				margin: 0 4px 8px 8px;
-				visibility: hidden;
+				margin: 8px 0 8px auto;
 			}
-			#search-control { margin: 0 4px; }
-			#search-control-x1, #search-control-x2 { display: none; }
+			#search-button, #search-prev, #search-next { user-select: none; }
+			#search-control { margin: 0 4px; float: right; }
+			#search-results-control { display: none; }
 			#search-field, #search-button, #search-prev, #search-next {
 				box-sizing: content-box;
 				vertical-align: middle;
@@ -31,14 +29,15 @@
 			}
 			#search-field {
 				padding: 2px;
-				width: 375px;
+				width: 225px;
 			}
 			#search-button { padding: 2px 8px; }
 			#search-control {
-				text-align: center;
+				text-align: right;
 				margin-bottom: 16px;
 			}
 			#search-results a {
+				vertical-align: top;
 				max-width: 256px;
 				display: inline-block;
 				font-size: 12px;
@@ -50,6 +49,20 @@
 			}
 			#search-results img {
 				border: none;
+			}
+			@media screen and (min-width: 960px){
+				#map { width: 400px; }
+				#search-field { width: 330px; }
+			}
+			@media screen and (min-width: 1200px){
+				#map { width: 575px; }
+				#search-field { width: 500px; }
+			}
+			@media screen and (min-height: 640px){
+				#map { height: 400px; }
+			}
+			@media screen and (min-height: 800px){
+				#map { height: 500px; }
 			}
 		</style>
 		<script src="js/mustache-2.3.0.min.js"></script>
@@ -131,6 +144,9 @@
 				var search_next = document.getElementById('search-next');
 				if(search_next) search_next.onclick = function(){ search(false); };
 
+				var search_show = document.getElementById('search-show');
+				if(search_show) search_show.onchange = search;
+
 				var q = document.getElementById('search-field');
 				if(q){
 					q.onkeydown = function(evt){
@@ -162,7 +178,7 @@
 					zoomControl: false,
 					minZoom: 3,
 					maxZoom: 19,
-					center: L.latLng(64.32087, -149.85351),
+					center: L.latLng(62.99515, -155.21484),
 					zoom: 3,
 					layers: [
 						baselayers['Open Street Maps'],
@@ -178,7 +194,7 @@
 				map.addControl(L.control.scale());
 
 				// Add zoom controls
-				map.addControl(L.control.zoom({ position: 'topright' }));
+				map.addControl(L.control.zoom({ position: 'topleft' }));
 
 				// Add layer control
 				map.addControl(L.control.layers(
@@ -188,26 +204,22 @@
 				));
 			}
 
-			function showControls()
-			{
-				var x1 = document.getElementById('search-control-x1');
-				if(x1) x1.style.display = 'inline';
-				var x2 = document.getElementById('search-control-x2');
-				if(x2) x2.style.display = 'inline';
-			}
-
 			function search(back)
 			{
 				var q = document.getElementById('search-field');
 				if(!q || q.value.length < 1) return;
 
-				var query = 'search=' + encodeURIComponent(q.value);
+				var show = document.getElementById('search-show');
+				var sh = show ? show.value : 6;
+
+				var query = 'search=' + encodeURIComponent(q.value) +
+					'&show=' + sh;
+				var dirty = query !== last ? true : false;
 
 				var page = document.getElementById('search-page');
-				var pg = page.value;
-				if(query !== last){
-					pg = 0;
-				} else if(typeof back === 'boolean'){
+				var pg = dirty ? 0 : page.value;
+
+				if(!dirty && typeof back === 'boolean'){
 					pg = Math.max(0, Number(page.value) + (back ? -1 : 1));
 				}
 
@@ -217,15 +229,25 @@
 				xhr.onreadystatechange = function(){
 					if(xhr.readyState === 4){
 						if(xhr.status === 200){
-							showControls();
 							var obj = JSON.parse(xhr.responseText);
+							var results = document.getElementById('search-results');
 
-							if(obj.length < 1) return;
+							if(obj.length > 0 || dirty){
+								page.value = pg;
+								last = query;
+								document.location.hash = '#' + params;
+							}
 
-							last = query;
-							page.value = pg;
-							document.location.hash = '#' + params;
+							var src = document.getElementById('search-results-control');
+							if(obj.length < 1){
+								if(!dirty) return;
 
+								if(src) src.style.display = 'none';
+								if(results) results.innerHTML = '';
+								return;
+							}
+
+							if(src) src.style.display = 'block';
 
 							features.clearLayers();
 							for(var i = 0; i < obj.length; i++){
@@ -235,25 +257,16 @@
 									// the original reference to be freed
 									var geojson = {
 										type: 'Feature',
-										properties: {
-											popup: Mustache.render(
-												document.getElementById('tmpl-popup').innerHTML,
-												o
-											),
-											color: '#9f00ff'
-										},
+										properties: { color: '#9f00ff' },
 										geometry: JSON.parse(JSON.stringify(o['geoJSON']))
 									};
 									features.addData(geojson);
 								}
 							}
 
-							map.getContainer().style.visibility = 'visible';
-
 							var map_el = document.getElementById('map');
 							if(map_el) map_el.style.display = 'block';
 
-							var results = document.getElementById('search-results');
 							var tmpl = document.getElementById('tmpl-search');
 							if(results && tmpl){
 								results.innerHTML = Mustache.render(
@@ -271,9 +284,6 @@
 
 			function mirroredLayer(data, style){
 				var layer = L.geoJson(null, {
-//					pointToLayer: function (f, ll) {
-//						return L.circleMarker(ll);
-//					},
 					coordsToLatLngInvert: function(c){
 						var ll = new L.LatLng(c[1], c[0], c[2]);
 						if(ll.lng >= 0) ll.lng -= 360;
@@ -311,7 +321,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
-				<a href="help">Help</a>
+				<a href="help/">Help</a>
 			</div>
 
 			<div class="apptmpl-banner">
@@ -330,17 +340,22 @@
 			<div class="apptmpl-content">
 				<div id="search-control">
 					<input type="hidden" name="search-page" id="search-page" value="0">
-					<span id="search-control-x1">
-						<button id="search-prev">Previous</button> |
-					</span>
 					<input type="text" id="search-field" name="search-field" placeholder="Search for .. " autocomplete="off">
 					<button id="search-button">Search</button>
-					<span id="search-control-x2">
-						| <button id="search-next">Next</button>
-					</span>
+					<div id="map"></div>
+					<div id="search-results-control">
+						<button id="search-prev">Previous Page</button> |
+						Showing: <select name="search-show" id="search-show">
+							<option value="6">6</option>
+							<option value="12" selected>12</option>
+							<option value="24">24</option>
+							<option value="96">96</option>
+						</select>
+						| <button id="search-next">Next Page</button>
+					</div>
 				</div>
-				<div id="map"></div>
 				<div id="search-results"></div>
+				<div style="clear: both"></div>
 			</div>
 		</div>
 		<script id="tmpl-search" type="x-tmpl-mustache">
@@ -351,8 +366,6 @@
 					<div>{{credit}} {{taken}}</div>
 				</a>
 			{{/.}}
-		</script>
-		<script id="tmpl-popup" type="x-tmpl-mustache">
 		</script>
 	</body>
 </html>

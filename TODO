@@ -1,21 +1,23 @@
-Add controls beneath each image to edit individually, select, or view
-full image
+Public Search
+=============
+Search by spatial
+Read search from URL
 
-Add metadata display to individual edit
 
-Add "greyed" marker for each file you're editing on the edit screen -
-then you can drop a new colored marker to override the location.
+Detail
+======
+Do a detail page
 
-Enter to submit search under search dialog
 
-Better, multiline formatting for each controls
+Private Search
+==============
+Selection
+Edit Selected
+Spreadsheet Selected
+Delete Selected
 
-Consider putting each function (search, edit, upload) on it's own page
 
-Should uploading files append to your current select or override it?
-
-Better support for old browsers
-
-Random image page (what is the criteria for that?)
-
-Put everything inside the application template
+Edit
+====
+Same functionality as previous version
+Append tag (without modifying existing)
