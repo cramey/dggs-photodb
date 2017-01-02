@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+<%@
+	page trimDirectiveWhitespaces="true"
+%><%@
+	taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
+%><%@
+	taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"
+%><%@
+	taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
+%><!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
@@ -29,7 +37,7 @@
 				<a href="http://alaska.gov">State of Alaska</a> &gt;
 				<a href="http://dnr.alaska.gov">Natural Resources</a> &gt;
 				<a href="http://dggs.alaska.gov">Geological &amp; Geophysical Surveys</a> &gt;
-				<a href=".">Photo Database</a>
+				<a href=".">Photos</a>
 			</div>
 
 			<div class="apptmpl-content">
@@ -62,7 +70,7 @@
 		<script src="js/pub.search.js"></script>
 		<script id="tmpl-search" type="x-tmpl-mustache">
 			{{#.}}
-				<a href="detail.html#{{ID}}" title="{{filename}}">
+				<a href="detail/{{ID}}" title="{{filename}}">
 					<img src="thumbnail/{{ID}}">
 					<div>{{summary}}</div>
 					<div>{{credit}} {{taken}}</div>

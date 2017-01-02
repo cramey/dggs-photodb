@@ -31,7 +31,7 @@ import gov.alaska.dggs.transformer.IterableTransformer;
 import gov.alaska.dggs.transformer.RawTransformer;
 
 
-public class ImageListServlet extends HttpServlet
+public class ImageSearchServlet extends HttpServlet
 {
 	private static JSONSerializer serializer;
 	static {

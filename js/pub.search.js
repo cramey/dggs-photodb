@@ -288,7 +288,7 @@ function search(back, noupdate)
 			searchok = true;
 		}
 	};
-	xhr.open('POST', 'list.json', true);
+	xhr.open('POST', 'search.json', true);
 	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	xhr.send(params);
 }

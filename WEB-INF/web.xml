@@ -6,9 +6,9 @@
 
 	<display-name>photodb</display-name>
 
-	<session-config>
-		<session-timeout>5</session-timeout>
-	</session-config>
+	<welcome-file-list>
+		<welcome-file>search</welcome-file>
+	</welcome-file-list>
 
 
 	<servlet>
@@ -30,7 +30,6 @@
 			<param-value>false</param-value>
 		</init-param>
 	</servlet>
-
 	<servlet-mapping>
 		<servlet-name>ImageDownload</servlet-name>
 		<url-pattern>/image/*</url-pattern>
@@ -45,7 +44,6 @@
 			<param-value>true</param-value>
 		</init-param>
 	</servlet>
-
 	<servlet-mapping>
 		<servlet-name>ThumbnailDownload</servlet-name>
 		<url-pattern>/thumbnail/*</url-pattern>
@@ -53,24 +51,31 @@
 
 
 	<servlet>
-		<servlet-name>ImageList</servlet-name>
-		<servlet-class>gov.alaska.dggs.photodb.api.ImageListServlet</servlet-class>
+		<servlet-name>ImageDetailPage</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.page.ImageDetailServlet</servlet-class>
 	</servlet>
-
 	<servlet-mapping>
-		<servlet-name>ImageList</servlet-name>
-		<url-pattern>/list.json</url-pattern>
+		<servlet-name>ImageDetailPage</servlet-name>
+		<url-pattern>/detail/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ImageSearchPage</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.page.ImageSearchServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ImageSearchPage</servlet-name>
+		<url-pattern>/search</url-pattern>
 	</servlet-mapping>
 
 
 	<servlet>
-		<servlet-name>ImageDetail</servlet-name>
-		<servlet-class>gov.alaska.dggs.photodb.api.ImageDetailServlet</servlet-class>
+		<servlet-name>ImageSearch</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.api.ImageSearchServlet</servlet-class>
 	</servlet>
-
 	<servlet-mapping>
-		<servlet-name>ImageDetail</servlet-name>
-		<url-pattern>/detail.json</url-pattern>
+		<servlet-name>ImageSearch</servlet-name>
+		<url-pattern>/search.json</url-pattern>
 	</servlet-mapping>
 
 
@@ -78,22 +83,28 @@
 		<servlet-name>Image</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.api.ImageServlet</servlet-class>
 	</servlet>
-
 	<servlet-mapping>
 		<servlet-name>Image</servlet-name>
 		<url-pattern>/image.json</url-pattern>
 	</servlet-mapping>
 
 
+	<session-config>
+		<session-timeout>5</session-timeout>
+	</session-config>
+
+
 	<listener>
 		<listener-class>gov.alaska.dggs.photodb.PhotoDBFactory</listener-class>
 	</listener>
+
 
 	<listener>
 		<listener-class>
 			org.apache.commons.fileupload.servlet.FileCleanerCleanup
 		</listener-class>
 	</listener>
+
 
 	<resource-ref>
 		<description>DataSource</description>
