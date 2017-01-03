@@ -61,6 +61,18 @@
 				</div>
 				<div id="search-results"></div>
 				<div style="clear: both"></div>
+
+				<hr>
+
+				<div class="footer">
+					For USGS: All images produced or published by the USGS are in the
+					public domain and can be freely used without permission. Please
+					acknowledge the USGS as the source.
+					<br>
+					For DGGS: Image is available for free public use courtesy of DGGS.
+					Please cite the photographer and “Alaska Division of Geological &amp;
+					Geophysical Surveys” when using this image.
+				</div>
 			</div>
 		</div>
 		<script src="js/mustache-2.3.0.min.js"></script>

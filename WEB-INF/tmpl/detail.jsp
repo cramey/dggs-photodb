@@ -17,6 +17,7 @@
 		<link rel="stylesheet" href="../js/leaflet.mouseposition.css">
 		<style>
 			.apptmpl-container { min-width: 500px !important; }
+			.footer { font-size: 12px; }
 			a img { border: none; }
 			dl { margin: 0; padding: 0; }
 			dt { font-weight: bold; }
@@ -33,8 +34,15 @@
 				width: 43%;
 			}
 		</style>
+		<c:if test="${!empty image.geoJSON}">
+		<script>var geojson = ${image.geoJSON};</script>
+		<script src="../js/leaflet.js"></script>
+		<script src="../js/leaflet.mouseposition.js"></script>
+		<script src="../js/util.js"></script>
+		<script src="../js/detail.js"></script>
+		</c:if>
 	</head>
-	<body onload="init()">
+	<body ${!empty image.geoJSON ? 'onload="init()"' : ''}>
 		<div class="apptmpl-container">
 			<div class="apptmpl-goldbar">
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
@@ -58,6 +66,7 @@
 			</div>
 
 			<div class="apptmpl-content">
+				<input type="hidden" name="geojson" id="geojson" value="${image.geoJSON}">
 				<a href="../image/${image.ID}">
 					<img id="image" title="${image.filename}" src="../image/${image.ID}">
 				</a>
@@ -93,73 +102,17 @@
 				<div id="map"></div>
 				</c:if>
 				<div style="clear: both"></div>
+				<hr>
+				<div class="footer">
+					For USGS: All images produced or published by the USGS are in the
+					public domain and can be freely used without permission. Please
+					acknowledge the USGS as the source.
+					<br>
+					For DGGS: Image is available for free public use courtesy of DGGS.
+					Please cite the photographer and "Alaska Division of Geological &amp;
+					Geophysical Surveys" when using this image.
+				</div>
 			</div>
 		</div>
-		<script src="../js/leaflet.js"></script>
-		<script src="../js/leaflet.mouseposition.js"></script>
-		<script src="../js/util.js"></script>
-		<script>
-			var map;
-			function init()
-			{
-				<c:if test="${!empty image.geoJSON}">
-				// Fix for Leaflet Issue #5180
-				// See: https://github.com/Leaflet/Leaflet/issues/5180
-				if(!L.Browser.mobile) L.Browser.touch = false;
-
-				// Disable bfcache (firefox compatibility)
-				if('onunload' in window){
-					window.onunload = function(){};
-				}
-
-				var geojson = ${image.geoJSON};
-
-				features = mirroredLayer(null, function(f){
-					return {
-						color: f.properties.color,
-						opacity: 1,
-						weight: 2,
-						radius: 6,
-						fill: false,
-						'z-index': 20
-					};
-				});
-				features.addData(geojson);
-
-				map = L.map('map', {
-					closePopupOnClick: false,
-					worldCopyJump: true,
-					attributionControl: false,
-					zoomControl: false,
-					minZoom: 3,
-					maxZoom: 19,
-					center: L.latLng(62.99515, -155.21484),
-					zoom: 3,
-					layers: [
-						baselayers['Open Street Maps'],
-						features
-					]
-				});
-
-				// Add zoom control
-				map.addControl(L.control.zoom({ position: 'topleft' }));
-
-				// Add mouse position control
-				map.addControl(L.control.mousePosition({
-					emptyString: 'Unknown', numDigits: 4
-				}));
-
-				// Add scale bar
-				map.addControl(L.control.scale({ position: 'bottomleft' }));
-
-				// Add layer control
-				map.addControl(L.control.layers(
-					baselayers, overlays, {
-						position: 'bottomright', autoZIndex: false
-					}
-				));
-				</c:if>
-			}
-		</script>
 	</body>
 </html>
