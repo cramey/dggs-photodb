@@ -9,7 +9,7 @@
 #search-button, #search-prev, #search-next { user-select: none; }
 #search-control { margin: 0 4px; float: right; }
 #search-results-control { display: none; }
-#search-reset, #search-field, #search-button, #search-prev, #search-next {
+#search-reset, #search-field, #search-button, #search-prev, #search-next, #selected-delete, #selected-edit, #selected-spreadsheet {
 	box-sizing: content-box;
 	vertical-align: middle;
 	border-radius: 5px;
@@ -27,6 +27,7 @@
 	text-align: right;
 	margin-bottom: 16px;
 }
+#search-selected-control, #selected-status { margin: 4px 0 0 0; }
 #search-results a {
 	vertical-align: top;
 	max-width: 256px;

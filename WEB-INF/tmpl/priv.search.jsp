@@ -56,6 +56,12 @@
 							<option value="96">96</option>
 						</select>
 						| <button id="search-next">Next</button>
+						<div id="search-selected-control">
+							<button id="selected-delete">Delete</button> |
+							<button id="selected-edit">Edit</button>
+							<button id="selected-spreadsheet">Spreadsheet</button>
+							<div id="selected-status"></div>
+						</div>
 					</div>
 				</div>
 				<div id="search-results"></div>

@@ -42,9 +42,16 @@ function init()
 	var search_reset = document.getElementById('search-reset');
 	if(search_reset){
 		search_reset.onclick = function(){
-			selected = [];
+			updateSelected(true);
 			window.location.hash = '';
 			window.location.reload(false);
+		};
+	}
+
+	var selected_edit = document.getElementById('selected-edit');
+	if(selected_edit){
+		selected_edit.onclick = function(){
+			window.location.href = 'edit/' + selected.join(',');
 		};
 	}
 
@@ -229,7 +236,9 @@ function search(back, noupdate)
 	}
 
 	// Reset selected if the query is dirty
-	if(dirty) selected = [];
+	if(dirty){
+		updateSelected(true);
+	}
 
 	var params = query + '&page=' + pg;
 		
@@ -306,6 +315,7 @@ function search(back, noupdate)
 								this.className = '';
 								selectDel(id);
 							}
+							updateSelected();
 						};
 					}
 				}
@@ -365,6 +375,7 @@ function selectAdd(id)
 	selected.push(id);
 }
 
+
 function selectDel(id)
 {
 	if('indexOf' in selected){
@@ -379,6 +390,7 @@ function selectDel(id)
 	}
 }
 
+
 function isSelected(id)
 {
 	if('indexOf' in selected){
@@ -389,5 +401,20 @@ function isSelected(id)
 			if(selected[i] === id) return true;
 		}
 		return false;
+	}
+}
+
+
+function updateSelected(empty)
+{
+	if(typeof empty === 'boolean' && empty) selected = [];
+
+	var sel = document.getElementById('search-selected-control');
+	if(selected.length < 1){
+		if(sel) sel.style.display = 'none';
+	} else {
+		if(sel) sel.style.display = 'block';
+		var stat = document.getElementById('selected-status');
+		if(stat) stat.innerHTML = selected.length + ' images selected';
 	}
 }
