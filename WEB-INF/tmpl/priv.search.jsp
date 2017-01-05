@@ -12,11 +12,11 @@
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="IE=edge">
 		<title>Alaska Division of Geological &amp; Geophysical Surveys Photo Database</title>
-		<link rel="stylesheet" href="css/apptmpl.min.css">
-		<link rel="stylesheet" href="js/leaflet.css">
-		<link rel="stylesheet" href="js/leaflet.draw.css">
-		<link rel="stylesheet" href="js/leaflet.mouseposition.css">
-		<link rel="stylesheet" href="css/search.css">
+		<link rel="stylesheet" href="../css/apptmpl.min.css">
+		<link rel="stylesheet" href="../js/leaflet.css">
+		<link rel="stylesheet" href="../js/leaflet.draw.css">
+		<link rel="stylesheet" href="../js/leaflet.mouseposition.css">
+		<link rel="stylesheet" href="../css/search.css">
 	</head>
 	<body onload="init()">
 		<div class="apptmpl-container">
@@ -24,8 +24,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
-				<!-- <a href="private/">Login</a> -->
-				<a href="help/">Help</a>
+				<a href="../help/">Help</a>
 			</div>
 
 			<div class="apptmpl-banner">
@@ -73,18 +72,21 @@
 				</div>
 			</div>
 		</div>
-		<script src="js/mustache-2.3.0.min.js"></script>
-		<script src="js/leaflet.js"></script>
-		<script src="js/leaflet.draw.js"></script>
-		<script src="js/leaflet.mouseposition.js"></script>
-		<script src="js/util.js"></script>
-		<script src="js/pub.search.js"></script>
+		<script src="../js/mustache-2.3.0.min.js"></script>
+		<script src="../js/leaflet.js"></script>
+		<script src="../js/leaflet.draw.js"></script>
+		<script src="../js/leaflet.mouseposition.js"></script>
+		<script src="../js/util.js"></script>
+		<script src="../js/priv.search.js"></script>
 		<script id="tmpl-search" type="x-tmpl-mustache">
 			{{#.}}
-				<a href="detail/{{ID}}" title="{{filename}}">
-					<img src="thumbnail/{{ID}}">
-					<div>{{summary}}</div>
-					<div>{{credit}} {{taken}}</div>
+				<a href="javascript:void(0)" data-image-id="{{ID}}" title="{{filename}}" {{#selected}}class="selected"{{/selected}}>
+					<img src="../thumbnail/{{ID}}">
+					<div>
+						{{summary}}
+						<br>
+						{{credit}} {{taken}}
+					</div>
 				</a>
 			{{/.}}
 		</script>

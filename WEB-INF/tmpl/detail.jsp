@@ -48,7 +48,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
-				<a href="private/">Login</a>
+				<!-- <a href="private/">Login</a> -->
 				<a href="help/">Help</a>
 			</div>
 
@@ -104,13 +104,11 @@
 				<div style="clear: both"></div>
 				<hr>
 				<div class="footer">
-					For USGS: All images produced or published by the USGS are in the
-					public domain and can be freely used without permission. Please
-					acknowledge the USGS as the source.
-					<br>
-					For DGGS: Image is available for free public use courtesy of DGGS.
-					Please cite the photographer and "Alaska Division of Geological &amp;
-					Geophysical Surveys" when using this image.
+					Image is available for free public use courtesy of DGGS, unless
+					otherwise credited. Please cite the photographer and "Alaska Division
+					of Geological &amp; Geophysical Surveys" when using this image. If a
+					non-DGGS source is credited, you must obtain permission from the
+					copyright holder and/or follow their citation specifications.
 				</div>
 			</div>
 		</div>

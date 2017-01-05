@@ -12,6 +12,15 @@ import java.io.InputStream;
 
 public class ImageSearchServlet extends HttpServlet
 {
+	private boolean pub;
+
+	public void init() throws ServletException
+	{
+		pub = Boolean.parseBoolean(
+			getServletConfig().getInitParameter("public")
+		);
+	}
+
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		doGet(request, response);
@@ -22,7 +31,7 @@ public class ImageSearchServlet extends HttpServlet
 		ServletContext context = getServletContext();
 
 		request.getRequestDispatcher(
-			"/WEB-INF/tmpl/pub.search.jsp"
+			"/WEB-INF/tmpl/" + (pub ? "pub" : "priv") + ".search.jsp"
 		).forward(request, response);
 	}
 }

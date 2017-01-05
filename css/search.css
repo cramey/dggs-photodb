@@ -4,6 +4,7 @@
 	width: 300px;
 	border: 1px solid #aaa;
 	margin: 8px 0 8px auto;
+	text-align: left;
 }
 #search-button, #search-prev, #search-next { user-select: none; }
 #search-control { margin: 0 4px; float: right; }
@@ -33,6 +34,15 @@
 	font-size: 12px;
 	margin: 0 4px 8px 4px;
 	text-decoration: none;
+	border: 2px solid transparent;
+}
+#search-results a div{
+	padding: 2px;
+}
+#search-results a.selected {
+	border: 2px solid #00f;
+	background-color: #00f;
+	color: #fff;
 }
 #search-results a:hover {
 	text-decoration: underline;
@@ -40,6 +50,7 @@
 #search-results img {
 	border: none;
 }
+
 .footer { font-size: 12px; }
 @media screen and (min-width: 960px){
 	#map { width: 400px; }

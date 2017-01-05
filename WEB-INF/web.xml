@@ -59,13 +59,32 @@
 		<url-pattern>/detail/*</url-pattern>
 	</servlet-mapping>
 
+
 	<servlet>
-		<servlet-name>ImageSearchPage</servlet-name>
+		<servlet-name>PublicSearchPage</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.page.ImageSearchServlet</servlet-class>
+		<init-param>
+			<param-name>public</param-name>
+			<param-value>true</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>ImageSearchPage</servlet-name>
+		<servlet-name>PublicSearchPage</servlet-name>
 		<url-pattern>/search</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>PrivateSearchPage</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.page.ImageSearchServlet</servlet-class>
+		<init-param>
+			<param-name>public</param-name>
+			<param-value>false</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PrivateSearchPage</servlet-name>
+		<url-pattern>/private/search</url-pattern>
 	</servlet-mapping>
 
 
