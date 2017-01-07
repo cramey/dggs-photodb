@@ -26,18 +26,18 @@
 		FROM image AS i
 		WHERE 1=1
 		<choose>
-			<when test="emptydesc == true">
+			<when test="description == true">
 				AND i.description IS NULL
 			</when>
-			<when test="emptydesc == false">
+			<when test="description == false">
 				AND i.description IS NOT NULL
 			</when>
 		</choose>
 		<choose>
-			<when test="emptylocation == true">
+			<when test="location == true">
 				AND i.geog IS NULL
 			</when>
-			<when test="emptylocation == false">
+			<when test="location == false">
 				AND i.geog IS NOT NULL
 			</when>
 		</choose>

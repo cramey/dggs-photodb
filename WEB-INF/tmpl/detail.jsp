@@ -66,7 +66,6 @@
 			</div>
 
 			<div class="apptmpl-content">
-				<input type="hidden" name="geojson" id="geojson" value="${image.geoJSON}">
 				<a href="../image/${image.ID}">
 					<img id="image" title="${image.filename}" src="../image/${image.ID}">
 				</a>
@@ -74,17 +73,17 @@
 				<dl>
 					<c:if test="${!empty image.summary}">
 					<dt>Title</dt>
-					<dd>${image.summary}</dd>
+					<dd><c:out value="${image.summary}" /></dd>
 					</c:if>
 
 					<c:if test="${!empty image.credit}">
 					<dt>Credit</dt>
-					<dd>${image.credit}</dd>
+					<dd><c:out value="${image.credit}" /></dd>
 					</c:if>
 
 					<c:if test="${!empty image.description}">
 					<dt>Description</dt>
-					<dd>${image.description}</dd>
+					<dd><c:out value="${image.description}" /></dd>
 					</c:if>
 
 					<c:if test="${!empty image.taken}">
@@ -94,7 +93,7 @@
 
 					<c:if test="${!empty image.tags}">
 					<dt>Tagged</dt>
-					<dd><c:forEach items="${image.tags}" var="tag" varStatus="stat"><c:if test="${stat.count != 1}">,&nbsp;</c:if><a href="../search#search=${tag.name}">${tag.name}</a></c:forEach></dd>
+					<dd><c:forEach items="${image.tags}" var="tag" varStatus="stat"><c:if test="${stat.count != 1}">,&nbsp;</c:if><a href="../search#search=<c:out value="${tag.name}"/>"><c:out value="${tag.name}" /></a></c:forEach></dd>
 					</c:if>
 				</dl>
 

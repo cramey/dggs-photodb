@@ -39,6 +39,12 @@ function init()
 		search();
 	};
 
+	var search_description = document.getElementById('search-description');
+	if(search_description) search_description.onchange = search;
+
+	var search_location = document.getElementById('search-location');
+	if(search_location) search_location.onchange = search;
+
 	var search_reset = document.getElementById('search-reset');
 	if(search_reset){
 		search_reset.onclick = function(){
@@ -187,7 +193,7 @@ function search(back, noupdate)
 
 	// Add the number of shown records (if it's not 6, the default)
 	var show = document.getElementById('search-show');
-	var sh = show ? Number(show.value) : 6;
+	var sh = show ? Number(show.options[show.selectedIndex].value) : 6;
 	if(sh !== 6) query += 'show=' + sh;
 	
 	// Add in the textual query (if there is one)
@@ -195,6 +201,22 @@ function search(back, noupdate)
 	if(q && q.value.length > 0){
 		if(query.length > 0) query += '&';
 		query += 'search=' + encodeURIComponent(q.value);
+	}
+
+	// Add in description filter
+	var desc = document.getElementById('search-description');
+	var de = desc.options[desc.selectedIndex].value;
+	if(de.length > 0){
+		if(query.length > 0) query += '&';
+		query += 'description=' + encodeURIComponent(de);
+	}
+
+	// Add in location filter
+	var loc = document.getElementById('search-location');
+	var lo = loc.options[loc.selectedIndex].value;
+	if(lo.length > 0){
+		if(query.length > 0) query += '&';
+		query += 'location=' + encodeURIComponent(lo);
 	}
 
 	// Add in the spatial query (if there is one)
@@ -360,6 +382,30 @@ function decodeParameters(params)
 					for(var j = 0; j < show.options.length; j++){
 						if(show.options[j].value === v){
 							show.options[j].selected = true;
+							break;
+						}
+					}
+				}
+			break;
+
+			case 'location':
+				var loc = document.getElementById('search-location');
+				if(loc){
+					for(var j = 0; j < loc.options.length; j++){
+						if(loc.options[j].value === v){
+							loc.options[j].selected = true;
+							break;
+						}
+					}
+				}
+			break;
+
+			case 'description':
+				var desc = document.getElementById('search-description');
+				if(desc){
+					for(var j = 0; j < desc.options.length; j++){
+						if(desc.options[j].value === v){
+							desc.options[j].selected = true;
 							break;
 						}
 					}

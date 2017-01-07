@@ -80,17 +80,17 @@ public class ImageSearchServlet extends HttpServlet
 				map.put("aoi", request.getParameter("aoi"));
 			}
 
-			String emptydesc = request.getParameter("emptydesc");
+			String emptydesc = request.getParameter("description");
 			if(emptydesc != null && emptydesc.length() > 0){
-				map.put("emptydesc",
-					Boolean.valueOf(request.getParameter("emptydesc"))
+				map.put("description",
+					Boolean.valueOf(request.getParameter("description"))
 				);
 			}
 
-			String emptylocation = request.getParameter("emptylocation");
+			String emptylocation = request.getParameter("location");
 			if(emptylocation != null && emptylocation.length() > 0){
-				map.put("emptylocation",
-					Boolean.valueOf(request.getParameter("emptylocation"))
+				map.put("location",
+					Boolean.valueOf(request.getParameter("location"))
 				);
 			}
 

@@ -43,6 +43,25 @@
 			<div class="apptmpl-content">
 				<div id="search-control">
 					<input type="hidden" name="search-page" id="search-page" value="0">
+
+					<div style="margin: 0 0 4px 0">
+						<label for="search-description">Description</label>
+						<select id="search-description" name="search-description">
+							<option value="">Any</option>
+							<option value="true">Only Empty</option>
+							<option value="false">Only Filled</option>
+						</select>
+
+						&nbsp;&nbsp;
+
+						<label for="search-location">Location</label>
+						<select id="search-location" name="search-location">
+							<option value="">Any</option>
+							<option value="true">Only Empty</option>
+							<option value="false">Only Filled</option>
+						</select>
+					</div>
+
 					<input type="text" id="search-field" name="search-field" placeholder="Search for .. " autocomplete="off">
 					<button id="search-button">Search</button>
 					<div id="map"></div>

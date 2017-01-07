@@ -89,6 +89,16 @@
 
 
 	<servlet>
+		<servlet-name>PrivateEditPage</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.page.ImageEditServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PrivateEditPage</servlet-name>
+		<url-pattern>/private/edit/*</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
 		<servlet-name>ImageSearch</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.api.ImageSearchServlet</servlet-class>
 	</servlet>
