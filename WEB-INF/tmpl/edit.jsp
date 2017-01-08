@@ -24,37 +24,148 @@
 			th, td { vertical-align: top; }
 			th { text-align: left; padding: 0 16px 0 0; }
 			th a { font-size: 12px; }
+			#map {
+				display: block
+				margin: 16px 0 0 0;
+				height: 300px;
+				width: 400px;
+			}
 		</style>
+		<script src="../../js/leaflet.js"></script>
+		<script src="../../js/leaflet.mouseposition.js"></script>
+		<script src="../../js/util.js"></script>
 		<script>
-			var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : '\'\''};
-
+			var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};
+			var map, features;
+			
 			function init()
 			{
+				// Fix for Leaflet Issue #5180
+				// See: https://github.com/Leaflet/Leaflet/issues/5180
+				if(!L.Browser.mobile) L.Browser.touch = false;
+
+				// Disable bfcache (firefox compatibility)
+				if('onunload' in window){
+					window.onunload = function(){};
+				}
+
+				var save = document.getElementById('button-save');
+				if(save) save.onclick = saveData;
+
 				var dis = document.getElementsByTagName('a');
 				for(var i = 0; i < dis.length; i++){
 					var forid = dis[i].getAttribute('data-for-id');
 					if(forid){
 						var el = document.getElementById(forid);
 						if(el){
-							var enabled = !(el.disabled);
-							dis[i].innerHTML = (enabled ? 'Disable' : 'Enable') + ' editing';
-							dis[i].style.color = '#' + (enabled ? '080' : 'f00');
+							var state = el.disabled;
+							dis[i].innerHTML = (state ? 'Enable' : 'Disable') + ' editing';
+							dis[i].style.color = '#' + (state ? 'f00' : '080');
 							dis[i].onclick = toggleEnabled;
 						}
 					}
 				}
+
+				features = L.geoJson();
+				features.on('layeradd', function(e){
+					if(!('dragging' in e.layer)){
+						e.layer.options.draggable = true;
+						e.layer.options.keyboard = false;
+					}
+
+					e.layer.on('dblclick', function(e){
+						features.removeLayer(this);
+					});
+				});
+				features.addData(geojson);
+
+				map = L.map('map', {
+					closePopupOnClick: false,
+					worldCopyJump: true,
+					attributionControl: false,
+					zoomControl: false,
+					minZoom: 3,
+					maxZoom: 19,
+					center: L.latLng(62.99515, -155.21484),
+					zoom: 3,
+					layers: [
+						baselayers['Open Street Maps'],
+						features
+					]
+				});
+
+				// Add zoom control
+				map.addControl(L.control.zoom({ position: 'topleft' }));
+
+				// Add mouse position control
+				map.addControl(L.control.mousePosition({
+					emptyString: 'Unknown', numDigits: 4
+				}));
+
+				// Add scale bar
+				map.addControl(L.control.scale({ position: 'bottomleft' }));
+
+				// Add layer control
+				map.addControl(L.control.layers(
+					baselayers, overlays, {
+						position: 'bottomright', autoZIndex: false
+					}
+				));
+
+				map.on('click', function(e){
+					if(features.getLayers().length < 1){
+						features.addLayer(L.marker(e.latlng, {
+							draggable: true, keyboard: false
+						}));
+					}
+				});
 			}
+
 
 			function toggleEnabled()
 			{
 				var forid = this.getAttribute('data-for-id');
 				var el = document.getElementById(forid);
 				if(el){
-					var state = !(el.disabled);
-					this.innerHTML = (state ? 'Enable' : 'Disable') + ' editing';
-					this.style.color = '#' + (state ? 'f00' : '080');
-					el.disabled = state;
+					var state = el.disabled;
+					this.innerHTML = (state ? 'Disable' : 'Enable') + ' editing';
+					this.style.color = '#' + (state ? '080' : 'f00');
+					el.disabled = !state;
 				}
+			}
+
+
+			function saveData()
+			{
+				var FIELDS = ['taken', 'credit', 'summary', 'description', 'tags'];
+
+				var params = '';
+				for(var i = 0; i < FIELDS.length; i++){
+					var el = document.getElementById(FIELDS[i]);
+					if(!el) continue;
+
+					switch(el.tagName){
+						case 'TEXTAREA':
+						case 'INPUT':
+							if(el.value.length > 0 && !el.disabled){
+								if(params.length > 0) params += '&';
+								params += FIELDS[i] + '=';
+								params += encodeURIComponent(el.value);
+							}
+						break;
+					}
+				}
+
+				var flayers = features.getLayers();
+				if(flayers.length > 0){
+					if(params.length > 0) params += '&';
+					params += 'geojson=';
+					params += encodeURIComponent(
+						JSON.stringify(flayers[0].toGeoJSON())
+					);
+				}
+
+				console.log(params);
 			}
 		</script>
 	</head>
@@ -81,6 +192,10 @@
 			</div>
 
 			<div class="apptmpl-content">
+				<div style="float: right">
+					<div id="map"></div>
+				</div>
+
 				<c:if test="${!empty common.taken}">
 					<fmt:formatDate pattern="M/d/yyyy" var="taken" value="${common.taken[0]}" />
 				</c:if>
@@ -132,6 +247,14 @@
 							</td>
 						</tr>
 					</tbody>
+					<tfoot>
+						<tr>
+							<td>&nbsp;</td>
+							<td style="text-align: right">
+								<button id="button-save">Save Changes</button>
+							</td>
+						</tr>
+					</tfoot>
 				</table>
 
 				<div style="clear: both"></div>

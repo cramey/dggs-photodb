@@ -24,7 +24,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
-				<!-- <a href="private/">Login</a> -->
+				<a href="private/">Login</a>
 				<a href="help/">Help</a>
 			</div>
 

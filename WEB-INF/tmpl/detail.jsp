@@ -13,8 +13,10 @@
 		<meta http-equiv="x-ua-compatible" content="IE=edge">
 		<title>Alaska Division of Geological &amp; Geophysical Surveys Photo Database</title>
 		<link rel="stylesheet" href="../css/apptmpl.min.css">
+		<c:if test="${!empty image.geoJSON}">
 		<link rel="stylesheet" href="../js/leaflet.css">
 		<link rel="stylesheet" href="../js/leaflet.mouseposition.css">
+		</c:if>
 		<style>
 			.apptmpl-container { min-width: 500px !important; }
 			.footer { font-size: 12px; }
@@ -48,7 +50,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
-				<!-- <a href="private/">Login</a> -->
+				<a href="private/">Login</a>
 				<a href="help/">Help</a>
 			</div>
 
