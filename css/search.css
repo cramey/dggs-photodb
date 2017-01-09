@@ -9,7 +9,7 @@
 #search-button, #search-prev, #search-next { user-select: none; }
 #search-control { margin: 0 4px; float: right; }
 #search-results-control { display: none; }
-#search-reset, #search-field, #search-button, #search-prev, #search-next, #selected-delete, #selected-edit, #selected-spreadsheet {
+#search-reset, #search-field, #search-button, #search-prev, #search-next, #selected-delete, #selected-edit, #selected-spreadsheet, #selected-all, #selected-unselect-all {
 	box-sizing: content-box;
 	vertical-align: middle;
 	border-radius: 5px;

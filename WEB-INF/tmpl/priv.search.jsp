@@ -76,6 +76,9 @@
 							<option value="96">96</option>
 						</select>
 						| <button id="search-next">Next</button>
+						<div style="margin: 4px 0 0 0">
+							<button id="selected-all">Select/Unselect All</button>
+						</div>
 						<div id="search-selected-control">
 							<button id="selected-delete">Delete</button> |
 							<button id="selected-edit">Edit</button>

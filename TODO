@@ -1,21 +1,16 @@
-Private Search
-==============
-Select All / Unselect All
-
-
 Edit (standard)
 ===============
 Append tag (without modifying existing)
-Lon/Lat Editing (as text)
-Display images on page
+Lon/Lat Editing (as text) (on hold)
+Display "Saved" when finished saving, hold for five seconds, then hide
 
 
 Edit (spreadsheet)
 ==================
-Create a spreadsheet view for editing
+Create a spreadsheet view for editing (on hold)
 
 
 Database
 ========
 Public/Private status for images
-Location accuracy(?)
+Location accuracy (on hold)

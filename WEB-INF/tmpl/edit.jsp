@@ -24,8 +24,17 @@
 			th, td { vertical-align: top; }
 			th { text-align: left; padding: 0 16px 0 0; }
 			th a { font-size: 12px; }
+			#images {
+				overflow-y: scroll;
+				height: 300px;
+				max-width: 800px;
+				text-align: right;
+				margin: 8px 0 0 auto;
+			}
+			#images a { display: inline-block; vertical-align: top; }
+			#images a img { border: none; }
 			#map {
-				display: block
+				display: block;
 				margin: 16px 0 0 0;
 				height: 300px;
 				width: 400px;
@@ -307,7 +316,7 @@
 								<a data-for-id="tags" href="javascript:void(0)"></a>
 							</th>
 							<td>
-								<input type="text" id="tags" name="tags" size="30" value="<c:out value="${empty common.tags ? '' : common.tags[0]}"/>" ${fn:length(common.tags) == 0 ? 'disabled' : ''}>
+								<input type="text" id="tags" name="tags" size="30" placeholder="panorama, sampling, fault, glacier, helicopter, Denali" value="<c:out value="${empty common.tags ? '' : common.tags[0]}"/>" ${fn:length(common.tags) == 0 ? 'disabled' : ''}>
 							</td>
 						</tr>
 					</tbody>
@@ -326,6 +335,13 @@
 				</table>
 
 				<div style="clear: both"></div>
+
+				<div id="images">
+					<c:set var="iids" value="${fn:split(ids, ',')}" />
+					<c:forEach items="${iids}" var="id">
+					<a href="../../image/${id}"><img src="../../thumbnail/${id}"></a>
+					</c:forEach>
+				</div>
 
 				<hr>
 

@@ -64,6 +64,9 @@ function init()
 	var selected_delete = document.getElementById('selected-delete');
 	if(selected_delete) selected_delete.onclick = deleteSelected;
 
+	var selected_all = document.getElementById('selected-all');
+	if(selected_all) selected_all.onclick = selectToggleAll;
+
 	var q = document.getElementById('search-field');
 	if(q){
 		q.onkeydown = function(evt){
@@ -419,22 +422,56 @@ function decodeParameters(params)
 }
 
 
+function selectToggleAll()
+{
+	var results = document.getElementById('search-results');
+	if(!results) return;
+
+	var count = 0;
+	var total = 0;
+
+	var lx = results.getElementsByTagName('a');
+	for(var i = 0; i < lx.length; i++){
+		if(lx[i].className === 'selected') ++count;
+		if(lx[i].getAttribute('data-image-id')) ++total;
+	}
+
+	var doselect = (count === total ? false : true);
+
+	for(var i = 0; i < lx.length; i++){
+		var id = Number(lx[i].getAttribute('data-image-id'));
+		if(id){
+			if(doselect) selectAdd(id)
+			else selectDel(id);
+			lx[i].className = (doselect ? 'selected' : '');
+		}
+	}
+	updateSelected();
+}
+
+
 function selectAdd(id)
 {
-	selected.push(id);
+	// Reminder: Array.indexOf isn't supported until IE9
+	var found = false;
+	for(var i = 0; i < selected.length; i++){
+		if(id === selected[i]){
+			found = true;
+			break;
+		}
+	}
+	
+	if(!found) selected.push(id);
 }
 
 
 function selectDel(id)
 {
-	if('indexOf' in selected){
-		selected.splice(selected.indexOf(id), 1);
-	} else {
-		for(var i = 0; i < selected.length; i++){
-			if(selected[i] === id){
-				selected.splice(i, 1);
-				return;
-			}
+	// Reminder: Array.indexOf isn't supported until IE9
+	for(var i = 0; i < selected.length; i++){
+		if(selected[i] === id){
+			selected.splice(i, 1);
+			return;
 		}
 	}
 }
