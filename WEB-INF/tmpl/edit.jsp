@@ -49,6 +49,23 @@
 					window.onunload = function(){};
 				}
 
+				var summary = document.getElementById('summary');
+				if(summary){
+					console.log('found summary');
+					summary.onkeyup = function(){
+						var l = document.getElementById('summary-limit');
+						var m = (100 - summary.value.length);
+
+						l.innerHTML = (
+							'(' + (m > 0 ? '+' : '') +
+							(100 - summary.value.length) + ')'
+						);
+						if(m >= 0) l.style.color = '#080';
+						else l.style.color = '#f00';
+					};
+					summary.onkeyup();
+				}
+
 				var save = document.getElementById('button-save');
 				if(save) save.onclick = saveData;
 
@@ -137,7 +154,7 @@
 
 			function saveData()
 			{
-				var FIELDS = ['taken', 'credit', 'summary', 'description', 'tags'];
+				var FIELDS = ['ids', 'taken', 'credit', 'summary', 'description', 'tags'];
 
 				var params = '';
 				for(var i = 0; i < FIELDS.length; i++){
@@ -161,11 +178,24 @@
 					if(params.length > 0) params += '&';
 					params += 'geojson=';
 					params += encodeURIComponent(
-						JSON.stringify(flayers[0].toGeoJSON())
+						JSON.stringify(flayers[0].toGeoJSON().geometry)
 					);
 				}
 
-				console.log(params);
+				var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState === 4){
+						if(xhr.status === 200){
+							var obj = JSON.parse(xhr.responseText);
+							if(obj['success']) return;
+						}
+						alert('Saving failed:\n' + xhr.responseText);
+					}
+				};
+
+				xhr.open('POST', '../image.json', true);
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+				xhr.send(params);
 			}
 		</script>
 	</head>
@@ -192,6 +222,7 @@
 			</div>
 
 			<div class="apptmpl-content">
+				<input type="hidden" name="ids" id="ids" value="<c:out value="${ids}"/>">
 				<div style="float: right">
 					<div id="map"></div>
 				</div>
@@ -221,7 +252,9 @@
 						</tr>
 						<tr>
 							<th>
-								<label for="summary">Title</label>
+								<label for="summary">
+									Title <span id="summary-limit"></span>
+								</label>
 								<a data-for-id="summary" href="javascript:void(0)"></a>
 							</th>
 							<td>

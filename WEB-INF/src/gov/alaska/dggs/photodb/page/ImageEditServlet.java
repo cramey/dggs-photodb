@@ -44,6 +44,7 @@ public class ImageEditServlet extends HttpServlet
       Map common = sess.selectOne(
 				"gov.alaska.dggs.photodb.Image.getCommonByID", ids
 			);
+			request.setAttribute("ids", path.substring(1));
 			request.setAttribute("common", common);
 			request.getRequestDispatcher(
 				"/WEB-INF/tmpl/edit.jsp"

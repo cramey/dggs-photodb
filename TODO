@@ -1,15 +1,13 @@
 Private Search
 ==============
-Selection
-Edit Selected
-Spreadsheet Selected
+Select All / Unselect All
 Delete Selected
 
 
 Edit (standard)
 ===============
-Same functionality as previous version
 Append tag (without modifying existing)
+Delete
 
 
 Edit (spreadsheet)

@@ -43,8 +43,10 @@ public class ImageServlet extends HttpServlet
 
 		SqlSession sess = PhotoDBFactory.openSession();
 		try {
-			String ids[] = request.getParameterValues("image_id");
-			for(String id : ids){
+			String ids = request.getParameter("ids");
+			if(ids == null) throw new Exception("No image ids found.");
+
+			for(String id : ids.split(",")){
 				Image image = sess.selectOne(
 					"gov.alaska.dggs.photodb.Image.getByID", 
 					Integer.valueOf(id)
@@ -166,14 +168,12 @@ public class ImageServlet extends HttpServlet
 
 			response.setContentType("application/json");
 			serializer.serialize(out, response.getWriter());
-
 		} catch(Exception ex){
 			sess.rollback();
 
 			response.setStatus(500);
 			response.setContentType("text/plain");
 			response.getOutputStream().print(ex.getMessage());
-			ex.printStackTrace();
 		} finally {
 			sess.close();	
 		}

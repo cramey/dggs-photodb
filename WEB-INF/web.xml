@@ -114,7 +114,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Image</servlet-name>
-		<url-pattern>/image.json</url-pattern>
+		<url-pattern>/private/image.json</url-pattern>
 	</servlet-mapping>
 
 
