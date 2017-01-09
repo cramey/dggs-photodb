@@ -1,15 +1,20 @@
 Private Search
 ==============
 Select All / Unselect All
-Delete Selected
 
 
 Edit (standard)
 ===============
 Append tag (without modifying existing)
-Delete
+Lon/Lat Editing (as text)
 
 
 Edit (spreadsheet)
 ==================
 Create a spreadsheet view for editing
+
+
+Database
+========
+Public/Private status for images
+Location accuracy(?)
