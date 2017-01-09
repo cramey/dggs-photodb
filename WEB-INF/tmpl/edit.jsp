@@ -31,11 +31,11 @@
 				width: 400px;
 			}
 		</style>
+		<script>var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};</script>
 		<script src="../../js/leaflet.js"></script>
 		<script src="../../js/leaflet.mouseposition.js"></script>
 		<script src="../../js/util.js"></script>
 		<script>
-			var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};
 			var map, features;
 			
 			function init()
@@ -51,23 +51,26 @@
 
 				var summary = document.getElementById('summary');
 				if(summary){
-					console.log('found summary');
-					summary.onkeyup = function(){
+					var f = function(){
 						var l = document.getElementById('summary-limit');
-						var m = (100 - summary.value.length);
-
-						l.innerHTML = (
-							'(' + (m > 0 ? '+' : '') +
-							(100 - summary.value.length) + ')'
-						);
-						if(m >= 0) l.style.color = '#080';
-						else l.style.color = '#f00';
+						if(!this.disabled){
+							var m = (100 - summary.value.length);
+							l.innerHTML = ('(' + (m > 0 ? '+' : '') + m + ')');
+							l.style.color = m >= 0 ? '#080' : '#f00';
+						} else {
+							l.innerHTML = '';
+						}
 					};
-					summary.onkeyup();
+					summary.onchange = f;
+					summary.onkeyup = f;
+					summary.onchange();
 				}
 
 				var save = document.getElementById('button-save');
-				if(save) save.onclick = saveData;
+				if(save) save.onclick = saveImage;
+
+				var del = document.getElementById('button-delete');
+				if(del) del.onclick = deleteImage;
 
 				var dis = document.getElementsByTagName('a');
 				for(var i = 0; i < dis.length; i++){
@@ -94,7 +97,7 @@
 						features.removeLayer(this);
 					});
 				});
-				features.addData(geojson);
+				if(geojson) features.addData(geojson);
 
 				map = L.map('map', {
 					closePopupOnClick: false,
@@ -148,11 +151,12 @@
 					this.innerHTML = (state ? 'Disable' : 'Enable') + ' editing';
 					this.style.color = '#' + (state ? '080' : 'f00');
 					el.disabled = !state;
+					if(typeof el.onchange === 'function') el.onchange();
 				}
 			}
 
 
-			function saveData()
+			function saveImage()
 			{
 				var FIELDS = ['ids', 'taken', 'credit', 'summary', 'description', 'tags'];
 
@@ -192,10 +196,36 @@
 						alert('Saving failed:\n' + xhr.responseText);
 					}
 				};
-
 				xhr.open('POST', '../image.json', true);
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 				xhr.send(params);
+			}
+
+			function deleteImage()
+			{
+				var ids = document.getElementById('ids');
+				if(!ids) return;
+
+				var c = ids.value.split(',').length;
+				var ok = confirm('Delete ' + c + ' image(s)?');
+				if(!ok) return;
+
+				var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState === 4){
+						if(xhr.status === 200){
+							var obj = JSON.parse(xhr.responseText);
+							if(obj['success']){
+								window.location = '../';
+								return;
+							}
+						}
+						alert(xhr.responseText);
+					}
+				};
+				xhr.open('POST', '../image.json', true);
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+				xhr.send('action=delete&ids=' + ids.value);
 			}
 		</script>
 	</head>
@@ -205,6 +235,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
+				<a href="../upload.html">Upload</a>
 				<a href="help/">Help</a>
 			</div>
 
@@ -284,6 +315,10 @@
 						<tr>
 							<td>&nbsp;</td>
 							<td style="text-align: right">
+								<button id="button-delete">Delete Image(s)</button>
+								&nbsp;&nbsp;
+								&nbsp;&nbsp;
+								&nbsp;&nbsp;
 								<button id="button-save">Save Changes</button>
 							</td>
 						</tr>

@@ -61,6 +61,9 @@ function init()
 		};
 	}
 
+	var selected_delete = document.getElementById('selected-delete');
+	if(selected_delete) selected_delete.onclick = deleteSelected;
+
 	var q = document.getElementById('search-field');
 	if(q){
 		q.onkeydown = function(evt){
@@ -463,4 +466,31 @@ function updateSelected(empty)
 		var stat = document.getElementById('selected-status');
 		if(stat) stat.innerHTML = selected.length + ' images selected';
 	}
+}
+
+
+function deleteSelected()
+{
+	var ok = confirm('Delete ' + selected.length + ' image(s)?');
+	if(!ok) return;
+
+	var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState === 4){
+			if(xhr.status === 200){
+				var obj = JSON.parse(xhr.responseText);
+				if(obj['success']){
+					selected = [];
+					var page = document.getElementById('search-page');
+					if(page) page.value = '0';
+					search();
+					return;
+				}
+			}
+			alert(xhr.responseText);
+		}
+	};
+	xhr.open('POST', 'image.json', true);
+	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	xhr.send('action=delete&ids=' + selected.join(','));
 }

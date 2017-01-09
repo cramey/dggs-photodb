@@ -99,6 +99,16 @@
 
 
 	<servlet>
+		<servlet-name>PrivateUploadPage</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.page.ImageUploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PrivateUploadPage</servlet-name>
+		<url-pattern>/private/upload.html</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
 		<servlet-name>ImageSearch</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.api.ImageSearchServlet</servlet-class>
 	</servlet>
