@@ -1,8 +1,6 @@
 Edit (standard)
 ===============
 Append tag (without modifying existing)
-Lon/Lat Editing (as text) (on hold)
-Display "Saved" when finished saving, hold for five seconds, then hide
 
 
 Edit (spreadsheet)
@@ -13,4 +11,4 @@ Create a spreadsheet view for editing (on hold)
 Database
 ========
 Public/Private status for images
-Location accuracy (on hold)
+Location accuracy

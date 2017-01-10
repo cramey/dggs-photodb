@@ -39,6 +39,7 @@
 				height: 300px;
 				width: 400px;
 			}
+			#tags, #description, #summary, #credit { width: 100%; }
 		</style>
 		<script>var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};</script>
 		<script src="../../js/leaflet.js"></script>
@@ -97,6 +98,8 @@
 
 				features = L.geoJson();
 				features.on('layeradd', function(e){
+					updateLonLat(e.layer);
+
 					if(!('dragging' in e.layer)){
 						e.layer.options.draggable = true;
 						e.layer.options.keyboard = false;
@@ -105,6 +108,12 @@
 					e.layer.on('dblclick', function(e){
 						features.removeLayer(this);
 					});
+					e.layer.on('dragend', function(e){
+						updateLonLat(this);
+					});
+				});
+				features.on('layerremove', function(e){
+					updateLonLat();
 				});
 				if(geojson) features.addData(geojson);
 
@@ -167,6 +176,9 @@
 
 			function saveImage()
 			{
+				var button = document.getElementById('button-save');
+				if(button) button.innerHTML = 'Saving.. ';
+
 				var FIELDS = ['ids', 'taken', 'credit', 'summary', 'description', 'tags'];
 
 				var params = '';
@@ -200,9 +212,17 @@
 					if(xhr.readyState === 4){
 						if(xhr.status === 200){
 							var obj = JSON.parse(xhr.responseText);
-							if(obj['success']) return;
+							if(obj['success']){
+								if(button) button.innerHTML = 'Save Complete';
+								setTimeout(function(){
+									var button = document.getElementById('button-save');
+									if(button) button.innerHTML = 'Save Changes';
+								}, 5000);
+								return;
+							}
 						}
 						alert('Saving failed:\n' + xhr.responseText);
+						if(button) button.innerHTML = 'Save Changes';
 					}
 				};
 				xhr.open('POST', '../image.json', true);
@@ -235,6 +255,20 @@
 				xhr.open('POST', '../image.json', true);
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 				xhr.send('action=delete&ids=' + ids.value);
+			}
+
+
+			function updateLonLat(layer)
+			{
+				var el = document.getElementById('lonlat');
+				if(!el) return;
+
+				if(typeof layer !== 'undefined'){
+					var ll = layer.getLatLng();
+					el.innerHTML = ll.lng.toFixed(5) + ', ' + ll.lat.toFixed(5);
+				} else {
+					el.innerHTML = 'None';
+				}
 			}
 		</script>
 	</head>
@@ -272,6 +306,12 @@
 				</c:if>
 				<table>
 					<tbody>
+						<tr>
+							<th>
+								<label>Longitude/Latitude</label>
+							</th>
+							<td id="lonlat">None</td>
+						</tr>
 						<tr>
 							<th>
 								<label for="taken">Taken</label>
@@ -316,7 +356,7 @@
 								<a data-for-id="tags" href="javascript:void(0)"></a>
 							</th>
 							<td>
-								<input type="text" id="tags" name="tags" size="30" placeholder="panorama, sampling, fault, glacier, helicopter, Denali" value="<c:out value="${empty common.tags ? '' : common.tags[0]}"/>" ${fn:length(common.tags) == 0 ? 'disabled' : ''}>
+								<input type="text" id="tags" name="tags" size="35" placeholder="panorama, sampling, fault, glacier, helicopter, Denali" value="<c:out value="${empty common.tags ? '' : common.tags[0]}"/>" ${fn:length(common.tags) == 0 ? 'disabled' : ''}>
 							</td>
 						</tr>
 					</tbody>
