@@ -10,6 +10,7 @@
 			i.taken, i.modified, i.entered,
 			i.summary, i.description, i.credit,
 			ST_AsGeoJSON(i.geog::GEOMETRY) AS geojson,
+			geog_accuracy, ispublic,
 			i.metadata::text
 	</sql>
 
@@ -57,7 +58,8 @@
 
 	<select id="getCommonByID" resultSetType="FORWARD_ONLY" resultType="Map">
 		SELECT credit, taken, summary,
-			description, geojson, tags
+			description, geojson, accuracy,
+			tags, ispublic
 		FROM images_common(<foreach item="item" index="index" collection="list" open="ARRAY[" separator="," close="]">${item}</foreach>)
 	</select>
 
@@ -68,7 +70,9 @@
 			credit = #{credit},
 			summary = #{summary},
 			description = #{description},
-			geog = ST_SetSRID(ST_GeomFromGeoJSON(#{geojson}), 4326)::GEOGRAPHY
+			geog = ST_SetSRID(ST_GeomFromGeoJSON(#{geojson}), 4326)::GEOGRAPHY,
+			geog_accuracy = #{accuracy},
+			ispublic = #{ispublic}
 		WHERE image_id = #{id}
 	</update>
 
@@ -108,6 +112,8 @@
 		<result property="entered" column="entered" />
 		<result property="metadata" column="metadata" />
 		<result property="geojson" column="geojson" />
+		<result property="accuracy" column="geog_accuracy" />
+		<result property="ispublic" column="ispublic" />
 
 		<collection property="tags" column="image_id" ofType="Tag" select="gov.alaska.dggs.photodb.Tag.getByImageID" />
 	</resultMap>

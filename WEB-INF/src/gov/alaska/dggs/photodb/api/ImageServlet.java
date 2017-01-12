@@ -146,6 +146,11 @@ public class ImageServlet extends HttpServlet
 						image.setGeoJSON(geojson.length() > 0 ? geojson : null);
 					}
 
+					String accuracy = request.getParameter("accuracy");
+					if(accuracy != null){
+						image.setAccuracy(Integer.valueOf(accuracy));
+					}
+
 					String taken = request.getParameter("taken");
 					if(taken != null){
 						DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
@@ -154,6 +159,11 @@ public class ImageServlet extends HttpServlet
 						} catch(Exception ex){
 							image.setTaken(null);
 						}
+					}
+
+					String ispublic = request.getParameter("ispublic");
+					if(ispublic != null){
+						image.setIsPublic(Boolean.valueOf(ispublic));
 					}
 
 					int r = sess.update("gov.alaska.dggs.photodb.Image.update", image);

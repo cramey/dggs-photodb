@@ -21,9 +21,6 @@
 			fieldset { border: none; }
 			label { display: block; font-weight: bold; font-size: 14px; }
 			input { margin: 0 0 16px 0; }
-			th, td { vertical-align: top; }
-			th { text-align: left; padding: 0 16px 0 0; }
-			th a { font-size: 12px; }
 			#images {
 				overflow-y: scroll;
 				height: 300px;
@@ -40,6 +37,9 @@
 				width: 400px;
 			}
 			#tags, #description, #summary, #credit { width: 100%; }
+			.ffields td, .ffields th { padding: 4px 0; vertical-align: top; }
+			.ffields th { text-align: left; padding: 0 16px 0 0; }
+			.ffields th a { font-size: 12px; }
 		</style>
 		<script>var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};</script>
 		<script src="../../js/leaflet.js"></script>
@@ -179,7 +179,7 @@
 				var button = document.getElementById('button-save');
 				if(button) button.innerHTML = 'Saving.. ';
 
-				var FIELDS = ['ids', 'taken', 'credit', 'summary', 'description', 'tags'];
+				var FIELDS = ['ids', 'taken', 'credit', 'summary', 'description', 'tags', 'accuracy', 'ispublic'];
 
 				var params = '';
 				for(var i = 0; i < FIELDS.length; i++){
@@ -193,6 +193,16 @@
 								if(params.length > 0) params += '&';
 								params += FIELDS[i] + '=';
 								params += encodeURIComponent(el.value);
+							}
+						break;
+
+						case 'SELECT':
+							for(var j = 0; j < el.options.length; j++){
+								if(el.options[j].selected && !el.disabled){
+									if(params.length > 0) params += '&';
+									params += FIELDS[i] + '=';
+									params += encodeURIComponent(el.options[j].value);
+								}
 							}
 						break;
 					}
@@ -304,7 +314,7 @@
 				<c:if test="${!empty common.taken}">
 					<fmt:formatDate pattern="M/d/yyyy" var="taken" value="${common.taken[0]}" />
 				</c:if>
-				<table>
+				<table class="ffields">
 					<tbody>
 						<tr>
 							<th>
@@ -352,11 +362,36 @@
 						</tr>
 						<tr>
 							<th>
+								<label for="accuracy">Location Accuracy</label>
+								<a data-for-id="accuracy" href="javascript:void(0)"></a>
+							</th>
+							<td>
+								<select name="accuracy" id="accuracy" ${fn:length(common.accuracy) == 0 ? 'disabled' : ''}>
+									<option value="0" ${fn:length(common.accuracy) gt 0 && common.accuracy[0] == 0 ? 'selected' : ''}>Good</option>
+									<option value="1" ${fn:length(common.accuracy) gt 0 && common.accuracy[0] == 1 ? 'selected' : ''}>Fair</option>
+									<option value="2" ${fn:length(common.accuracy) gt 0 && common.accuracy[0] == 2 ? 'selected' : ''}>Poor</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>
 								<label for="tags">Tags</label>
 								<a data-for-id="tags" href="javascript:void(0)"></a>
 							</th>
 							<td>
 								<input type="text" id="tags" name="tags" size="35" placeholder="panorama, sampling, fault, glacier, helicopter, Denali" value="<c:out value="${empty common.tags ? '' : common.tags[0]}"/>" ${fn:length(common.tags) == 0 ? 'disabled' : ''}>
+							</td>
+						</tr>
+						<tr>
+							<th>
+								<label for="ispublic">Security</label>
+								<a data-for-id="ispublic" href="javascript:void(0)"></a>
+							</th>
+							<td>
+								<select name="ispublic" id="ispublic" ${fn:length(common.ispublic) == 0 ? 'disabled' : ''}>
+									<option value="true" ${fn:length(common.ispublic) gt 0 && common.ispublic[0] ? 'selected' : ''}>Public</option>
+									<option value="false" ${fn:length(common.ispublic) gt 0 && !common.ispublic[0] ? 'selected' : ''}>Private</option>
+								</select>
 							</td>
 						</tr>
 					</tbody>

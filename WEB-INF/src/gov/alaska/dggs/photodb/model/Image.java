@@ -59,6 +59,14 @@ public class Image implements Serializable
 	}
 
 
+	private Integer accuracy;
+	public Integer getAccuracy(){ return accuracy; }
+	public void setAccuracy(Integer accuracy)
+	{
+		this.accuracy = accuracy;
+	}
+
+
 	private Date taken;
 	public Date getTaken(){ return taken; }
 	public void setTaken(Date taken)
@@ -80,6 +88,14 @@ public class Image implements Serializable
 	public void setEntered(Date entered)
 	{
 		this.entered = entered;
+	}
+
+
+	private Boolean ispublic;
+	public Boolean getIsPublic(){ return ispublic; }
+	public void setIsPublic(Boolean ispublic)
+	{
+		this.ispublic = ispublic;
 	}
 
 

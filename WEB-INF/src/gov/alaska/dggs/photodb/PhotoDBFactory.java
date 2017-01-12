@@ -56,18 +56,15 @@ public class PhotoDBFactory implements ServletContextListener
 				return;
 			}
 
-			try (Statement st = conn.createStatement(
-				ResultSet.TYPE_FORWARD_ONLY,
-				ResultSet.CONCUR_READ_ONLY
-			)){
-				st.execute(
+			try (Statement st = conn.createStatement()){
+				st.executeUpdate(
 					"CREATE TABLE IF NOT EXISTS tag (" +
 						"tag_id SERIAL PRIMARY KEY," +
 						"name VARCHAR(50)" + 
 					")"
 				);
 
-				st.execute(
+				st.executeUpdate(
 					"CREATE TABLE IF NOT EXISTS image (" +
 						"image_id SERIAL PRIMARY KEY," +
 						"image BYTEA NOT NULL," + 
@@ -88,7 +85,7 @@ public class PhotoDBFactory implements ServletContextListener
 					") WITH (FILLFACTOR=70)"
 				);
 
-				st.execute(
+				st.executeUpdate(
 					"CREATE TABLE IF NOT EXISTS image_tag (" + 
 						"tag_id INT REFERENCES tag(tag_id) NOT NULL," + 
 						"image_id INT REFERENCES image(image_id) NOT NULL," + 
@@ -97,7 +94,7 @@ public class PhotoDBFactory implements ServletContextListener
 				);
 
 				if(!PostgreSQL.isFunction(conn, "image_md5_fn")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE OR REPLACE FUNCTION image_md5_fn() " + 
 						"RETURNS TRIGGER AS $$ " + 
 						"BEGIN " +
@@ -110,7 +107,7 @@ public class PhotoDBFactory implements ServletContextListener
 				}
 
 				if(!PostgreSQL.isTrigger(conn, "image_md5_tr")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE TRIGGER image_md5_tr " +
 						"BEFORE INSERT OR UPDATE ON image " +
 						"FOR EACH ROW EXECUTE PROCEDURE image_md5_fn()"
@@ -118,7 +115,7 @@ public class PhotoDBFactory implements ServletContextListener
 				}
 
 				if(!PostgreSQL.isFunction(conn, "image_modified_fn")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE FUNCTION image_modified_fn() " +
 						"RETURNS TRIGGER AS $$ " + 
 						"BEGIN " + 
@@ -141,7 +138,7 @@ public class PhotoDBFactory implements ServletContextListener
 				}
 
 				if(!PostgreSQL.isTrigger(conn, "image_modified_tr")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE TRIGGER image_modified_tr " +
 						"BEFORE INSERT OR UPDATE ON image " +
 						"FOR EACH ROW EXECUTE PROCEDURE image_modified_fn()"
@@ -149,25 +146,25 @@ public class PhotoDBFactory implements ServletContextListener
 				}
 
 				if(!PostgreSQL.isIndex(conn, "image_image_md5_idx")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE INDEX image_image_md5_idx ON image(image_md5)"
 					);
 				}
 
 				if(!PostgreSQL.isIndex(conn, "image_taken_idx")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE INDEX image_taken_idx ON image(taken)"
 					);
 				}
 
 				if(!PostgreSQL.isIndex(conn, "image_geog_idx")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE INDEX image_geog_idx ON image USING GIST(geog)"
 					);
 				}
 
 				if(!PostgreSQL.isIndex(conn, "image_search_idx")){
-					st.execute(
+					st.executeUpdate(
 						"CREATE INDEX image_search_idx ON image USING GIN(search)"
 					);
 				}
@@ -176,7 +173,7 @@ public class PhotoDBFactory implements ServletContextListener
 					// Finds and returns the commonality between various images 
 					// That is, if two images share the same credit, this will
 					// return that credit otherwise it returns null for the credit.
-					st.execute(
+					st.executeUpdate(
 						"CREATE FUNCTION public.images_common(" +
 							"ids INT[]" +
 						") RETURNS TABLE(" +
@@ -187,7 +184,7 @@ public class PhotoDBFactory implements ServletContextListener
 							"geojson TEXT[], " +
 							"accuracy SMALLINT[], " +
 							"tags TEXT[], " +
-							"ispublic  BOOLEAN[]" +
+							"ispublic BOOLEAN[]" +
 						") AS $$ " +
 							"DECLARE " +
 								"arr_credit TEXT[]; " +
@@ -195,7 +192,9 @@ public class PhotoDBFactory implements ServletContextListener
 								"arr_summary VARCHAR[]; " +
 								"arr_description TEXT[]; " +
 								"arr_geojson VARCHAR[]; " +
+								"arr_accuracy SMALLINT[]; " +
 								"arr_tags VARCHAR[]; " +
+								"arr_ispublic BOOLEAN[]; " +
 							"BEGIN " +
 								"SELECT ARRAY_AGG(q.credit) INTO arr_credit " +
 								"FROM (" +
@@ -238,6 +237,14 @@ public class PhotoDBFactory implements ServletContextListener
 									"LIMIT 2" +
 								") AS q; " +
 
+								"SELECT ARRAY_AGG(q.geog_accuracy) INTO arr_accuracy " +
+								"FROM (" +
+									"SELECT DISTINCT i.geog_accuracy " +
+									"FROM image AS i " +
+									"WHERE i.image_id = ANY(ids) " +
+									"LIMIT 2" +
+								") AS q; " +
+
 								"SELECT ARRAY_AGG(q.names) INTO arr_tags " +
 								"FROM (" +
 									"SELECT DISTINCT names " +
@@ -252,6 +259,14 @@ public class PhotoDBFactory implements ServletContextListener
 										"WHERE i.image_id = ANY(ids) " +
 										"GROUP BY i.image_id" +
 									") AS q " +
+									"LIMIT 2" +
+								") AS q; " +
+
+								"SELECT ARRAY_AGG(q.ispublic) INTO arr_ispublic " +
+								"FROM (" +
+									"SELECT DISTINCT i.ispublic " +
+									"FROM image AS i " +
+									"WHERE i.image_id = ANY(ids) " +
 									"LIMIT 2" +
 								") AS q; " +
 
@@ -281,18 +296,30 @@ public class PhotoDBFactory implements ServletContextListener
 										"ELSE ARRAY[]::TEXT[] " +
 									"END AS geojson, " +
 
+									"CASE WHEN ARRAY_LENGTH(arr_accuracy, 1) = 1 " +
+										"THEN ARRAY[arr_accuracy[1]] " +
+										"ELSE ARRAY[]::SMALLINT[] " +
+									"END AS accuracy, " +
+
 									"CASE WHEN ARRAY_LENGTH(arr_tags, 1) = 1 " +
 										"THEN ARRAY[arr_tags[1]] " +
 										"ELSE ARRAY[]::TEXT[] " +
-									"END AS tags " +
+									"END AS tags, " +
+
+									"CASE WHEN ARRAY_LENGTH(arr_ispublic, 1) = 1 " +
+										"THEN ARRAY[arr_ispublic[1]] " +
+										"ELSE ARRAY[]::BOOLEAN[] " +
+									"END AS accuracy " +
 								"; " +
 							"END; " + 
 						"$$ LANGUAGE plpgsql;"
 					);
 				}
+				conn.commit();
 			}
 		} catch(Exception ex){
 			context.log("Cannot validate database: " + ex.getMessage());
+			System.out.println(ex.getMessage());
 		}
 	}
 
