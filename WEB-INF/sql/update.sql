@@ -27,3 +27,10 @@ WHERE image_id IN (
 );
 
 ALTER TABLE image ADD CONSTRAINT image_md5_key UNIQUE (image_md5);
+
+ALTER TABLE image ADD COLUMN geog_accuracy SMALLINT NOT NULL DEFAULT 1;
+ALTER TABLE image ADD COLUMN ispublic BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE image DROP COLUMN project_id;
+
+DROP TABLE project;
+ALTER TABLE image SET (FILLFACTOR = 70);

@@ -68,16 +68,8 @@ public class PhotoDBFactory implements ServletContextListener
 				);
 
 				st.execute(
-					"CREATE TABLE IF NOT EXISTS project (" +
-						"project_id SERIAL PRIMARY KEY," + 
-						"name VARCHAR(50)" + 
-					")"
-				);
-
-				st.execute(
 					"CREATE TABLE IF NOT EXISTS image (" +
 						"image_id SERIAL PRIMARY KEY," +
-						"project_id INT REFERENCES project(project_id) NULL," +
 						"image BYTEA NOT NULL," + 
 						"image_md5 VARCHAR(32) UNIQUE NOT NULL," +
 						"thumbnail BYTEA NULL," + 
@@ -90,8 +82,10 @@ public class PhotoDBFactory implements ServletContextListener
 						"description TEXT NULL," +
 						"metadata JSONB NULL," + 
 						"search TSVECTOR NOT NULL," + 
-						"geog GEOGRAPHY(Point) NULL" + 
-					")"
+						"geog GEOGRAPHY(Point) NULL," + 
+						"geog_accuracy SMALLINT NOT NULL DEFAULT 1," + 
+						"ispublic BOOLEAN NOT NULL DEFAULT false" +
+					") WITH (FILLFACTOR=70)"
 				);
 
 				st.execute(
@@ -154,12 +148,6 @@ public class PhotoDBFactory implements ServletContextListener
 					);
 				}
 
-				if(!PostgreSQL.isIndex(conn, "image_project_id_idx")){
-					st.execute(
-						"CREATE INDEX image_project_id_idx ON image(project_id)"
-					);
-				}
-
 				if(!PostgreSQL.isIndex(conn, "image_image_md5_idx")){
 					st.execute(
 						"CREATE INDEX image_image_md5_idx ON image(image_md5)"
@@ -197,7 +185,9 @@ public class PhotoDBFactory implements ServletContextListener
 							"summary VARCHAR[], " +
 							"description TEXT[], " +
 							"geojson TEXT[], " +
-							"tags TEXT[]" +
+							"accuracy SMALLINT[], " +
+							"tags TEXT[], " +
+							"ispublic  BOOLEAN[]" +
 						") AS $$ " +
 							"DECLARE " +
 								"arr_credit TEXT[]; " +
