@@ -50,6 +50,9 @@
 				i.geog, ST_SetSRID(ST_GeomFromGeoJSON(#{aoi}), 4326)
 			)
 		</if>
+		<if test="hideprivate == true">
+			AND ispublic
+		</if>
 		ORDER BY i.image_id ASC
 		OFFSET ${offset}
 		LIMIT ${limit}

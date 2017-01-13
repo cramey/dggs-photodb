@@ -35,6 +35,7 @@ public class ImageDetailServlet extends HttpServlet
 				"gov.alaska.dggs.photodb.Image.getByID", id
 			);
 			if(image == null) throw new Exception("ID not found.");
+			if(!image.getIsPublic()) throw new Exception("Access denied.");
 
 			request.setAttribute("image", image);
 			request.getRequestDispatcher(

@@ -51,6 +51,16 @@ public class ImageSearchServlet extends HttpServlet
 		serializer.transform(new RawTransformer(), "geoJSON");
 	}
 
+  private boolean hideprivate;
+
+
+	public void init() throws ServletException
+	{
+		hideprivate = Boolean.parseBoolean(
+			getServletConfig().getInitParameter("hideprivate")
+		);
+	}
+
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPostGet(request,response); }
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPostGet(request,response); }
@@ -104,6 +114,7 @@ public class ImageSearchServlet extends HttpServlet
 
 			map.put("limit", limit);
 			map.put("offset", (limit * page));
+			map.put("hideprivate", hideprivate);
 
 			List output = sess.selectList(
 				"gov.alaska.dggs.photodb.Image.getFromID", map

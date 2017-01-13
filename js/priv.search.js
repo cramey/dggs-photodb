@@ -1,6 +1,7 @@
 var map, aoi, features, last;
 var selected = [];
 var searchok = true;
+var skiphash = false;
 
 
 function init()
@@ -16,10 +17,11 @@ function init()
 
 	if('onhashchange' in window){
 		window.onhashchange = function(){
-			if(searchok && window.location.hash.length > 1){
+			if(!skiphash && window.location.hash.length > 1){
 				decodeParameters(window.location.hash.substring(1));
 				search(null, true);
 			}
+			skiphash = false;
 		};
 	}
 
@@ -49,6 +51,7 @@ function init()
 	if(search_reset){
 		search_reset.onclick = function(){
 			updateSelected(true);
+			skiphash = true;
 			window.location.hash = '';
 			window.location.reload(false);
 		};
@@ -242,6 +245,7 @@ function search(back, noupdate)
 
 	// Don't run empty queries
 	if(query.length === 0){
+		skiphash = true;
 		window.location.hash = '';
 		var results = document.getElementById('search-results');
 		var src = document.getElementById('search-results-control');
@@ -283,7 +287,10 @@ function search(back, noupdate)
 				if(obj.length > 0 || dirty){
 					page.value = pg;
 					last = query;
-					if(noupdate !== true) window.location.hash = params;
+					if(noupdate !== true){
+						skiphash = true;
+						window.location.hash = params;
+					}
 				}
 
 				var src = document.getElementById('search-results-control');
@@ -351,7 +358,7 @@ function search(back, noupdate)
 			searchok = true;
 		}
 	};
-	xhr.open('POST', '../search.json', true);
+	xhr.open('POST', 'search.json', true);
 	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	xhr.send(params);
 }

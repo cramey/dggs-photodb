@@ -109,12 +109,30 @@
 
 
 	<servlet>
-		<servlet-name>ImageSearch</servlet-name>
+		<servlet-name>PublicImageSearch</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.api.ImageSearchServlet</servlet-class>
+		<init-param>
+			<param-name>hideprivate</param-name>
+			<param-value>true</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>ImageSearch</servlet-name>
+		<servlet-name>PublicImageSearch</servlet-name>
 		<url-pattern>/search.json</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>PrivateImageSearch</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.api.ImageSearchServlet</servlet-class>
+		<init-param>
+			<param-name>hideprivate</param-name>
+			<param-value>false</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PrivateImageSearch</servlet-name>
+		<url-pattern>/private/search.json</url-pattern>
 	</servlet-mapping>
 
 
