@@ -1,0 +1,38 @@
+.apptmpl-container { min-width: 450px !important; }
+.footer { font-size: 12px; }
+input, textarea, select { box-sizing: border-box; }
+label { display: block; font-weight: bold; font-size: 14px; }
+input { margin: 0 0 16px 0; }
+#images {
+	overflow-y: scroll;
+	height: 300px;
+	max-width: 800px;
+	text-align: right;
+	margin: 8px 0 0 auto;
+}
+#images a { display: inline-block; vertical-align: top; }
+#images a img { border: none; }
+#map {
+	display: inline-block;
+	float: right;
+	margin: 0 0 4px 8px;
+	height: 300px;
+	width: 400px;
+}
+#tags, #description, #summary, #credit { width: 100%; }
+#button-delete { margin: 0 32px 0 0; }
+.ffields { border-collapse: collapse; width: 100%; }
+.ffields td, .ffields th {
+	padding: 0; margin: 0;
+	vertical-align: top;
+}
+.ffields td { padding: 2px; width: 100%; }
+.ffields tr:nth-child(odd) { background-color: #eee; }
+.ffields th {
+	width: 100px;
+	text-align: left;
+	padding: 0 16px 0 0;
+	white-space: nowrap;
+}
+.ffields th a { font-size: 12px; }
+.tbl-container { overflow: hidden; min-width: 400px; }
