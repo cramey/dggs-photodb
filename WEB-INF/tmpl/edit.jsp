@@ -42,7 +42,7 @@
 				<a href="http://alaska.gov">State of Alaska</a> &gt;
 				<a href="http://dnr.alaska.gov">Natural Resources</a> &gt;
 				<a href="http://dggs.alaska.gov">Geological &amp; Geophysical Surveys</a> &gt;
-				<a href="../..">Photos</a>
+				<a href="..">Photos</a>
 			</div>
 
 			<div class="apptmpl-content">
