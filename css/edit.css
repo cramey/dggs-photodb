@@ -1,14 +1,10 @@
 .apptmpl-container { min-width: 450px !important; }
 .footer { font-size: 12px; }
-input, textarea, select { box-sizing: border-box; }
-label { display: block; font-weight: bold; font-size: 14px; }
-input { margin: 0 0 16px 0; }
 #images {
 	overflow-y: scroll;
 	height: 300px;
-	max-width: 800px;
 	text-align: right;
-	margin: 8px 0 0 auto;
+	margin: 16px 0 0 0;
 }
 #images a { display: inline-block; vertical-align: top; }
 #images a img { border: none; }
@@ -16,7 +12,7 @@ input { margin: 0 0 16px 0; }
 	display: inline-block;
 	float: right;
 	margin: 0 0 4px 8px;
-	height: 300px;
+	height: 400px;
 	width: 400px;
 }
 #tags, #description, #summary, #credit { width: 100%; }
@@ -35,4 +31,8 @@ input { margin: 0 0 16px 0; }
 	white-space: nowrap;
 }
 .ffields th a { font-size: 12px; }
+.ffields input, .ffields textarea, .ffields select { box-sizing: border-box; }
+.ffields label { display: block; font-weight: bold; font-size: 14px; }
+.ffields input { margin: 0 0 16px 0; }
+
 .tbl-container { overflow: hidden; min-width: 400px; }

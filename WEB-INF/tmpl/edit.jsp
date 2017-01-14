@@ -46,7 +46,7 @@
 			</div>
 
 			<div class="apptmpl-content">
-				<input type="hidden" name="ids" id="ids" value="<c:out value="${ids}"/>">
+				<input type="hidden" name="ids" id="ids" value="<c:out value="${ids_str}"/>">
 				<div id="map"></div>
 
 				<c:if test="${!empty common.taken}">
@@ -67,7 +67,7 @@
 									<a data-for-id="taken" href="javascript:void(0)"></a>
 								</th>
 								<td>
-									<input type="text" id="taken" name="taken" size="9" value="${empty taken ? '' : taken}" ${fn:length(common.taken) == 0 ? 'disabled' : ''}>
+									<input type="text" id="taken" name="taken" size="9" tabindex="1" value="${empty taken ? '' : taken}" ${fn:length(common.taken) == 0 ? 'disabled' : ''}>
 								</td>
 							</tr>
 							<tr>
@@ -76,7 +76,7 @@
 									<a data-for-id="credit" href="javascript:void(0)"></a>
 								</th>
 								<td>
-									<textarea id="credit" name="credit" cols="30" rows="2" ${fn:length(common.credit) == 0 ? 'disabled' : ''}><c:out value="${empty common.credit ? '' : common.credit[0]}"/></textarea>
+									<textarea id="credit" name="credit" cols="30" rows="2" tabindex="2" ${fn:length(common.credit) == 0 ? 'disabled' : ''}><c:out value="${empty common.credit ? '' : common.credit[0]}"/></textarea>
 								</td>
 							</tr>
 							<tr>
@@ -87,7 +87,7 @@
 									<a data-for-id="summary" href="javascript:void(0)"></a>
 								</th>
 								<td>
-									<textarea id="summary" name="summary" cols="35" rows="4" ${fn:length(common.summary) == 0 ? 'disabled' : ''}><c:out value="${empty common.summary ? '' : common.summary[0]}"/></textarea>
+									<textarea id="summary" name="summary" cols="35" rows="4" tabindex="3" ${fn:length(common.summary) == 0 ? 'disabled' : ''}><c:out value="${empty common.summary ? '' : common.summary[0]}"/></textarea>
 								</td>
 							</tr>
 							<tr>
@@ -96,7 +96,7 @@
 									<a data-for-id="description" href="javascript:void(0)"></a>
 								</th>
 								<td>
-									<textarea id="description" name="description" cols="35" rows="6" ${fn:length(common.description) == 0 ? 'disabled' : ''}><c:out value="${empty common.description ? '' : common.description[0]}"/></textarea>
+									<textarea id="description" name="description" cols="35" rows="6" tabindex="4" ${fn:length(common.description) == 0 ? 'disabled' : ''}><c:out value="${empty common.description ? '' : common.description[0]}"/></textarea>
 								</td>
 							</tr>
 							<tr>
@@ -105,7 +105,7 @@
 									<a data-for-id="accuracy" href="javascript:void(0)"></a>
 								</th>
 								<td>
-									<select name="accuracy" id="accuracy" ${fn:length(common.accuracy) == 0 ? 'disabled' : ''}>
+									<select name="accuracy" id="accuracy" tabindex="5" ${fn:length(common.accuracy) == 0 ? 'disabled' : ''}>
 										<option value="0" ${fn:length(common.accuracy) gt 0 && common.accuracy[0] == 0 ? 'selected' : ''}>Good</option>
 										<option value="1" ${fn:length(common.accuracy) gt 0 && common.accuracy[0] == 1 ? 'selected' : ''}>Fair</option>
 										<option value="2" ${fn:length(common.accuracy) gt 0 && common.accuracy[0] == 2 ? 'selected' : ''}>Poor</option>
@@ -118,7 +118,7 @@
 									<a data-for-id="tags" href="javascript:void(0)"></a>
 								</th>
 								<td>
-									<input type="text" id="tags" name="tags" size="35" placeholder="panorama, sampling, fault, glacier, helicopter, Denali" value="<c:out value="${empty common.tags ? '' : common.tags[0]}"/>" ${fn:length(common.tags) == 0 ? 'disabled' : ''}>
+									<input type="text" id="tags" name="tags" size="35" tabindex="6" placeholder="panorama, sampling, fault, glacier, helicopter, Denali" value="<c:out value="${empty common.tags ? '' : common.tags[0]}"/>" ${fn:length(common.tags) == 0 ? 'disabled' : ''}>
 								</td>
 							</tr>
 							<tr>
@@ -127,7 +127,7 @@
 									<a data-for-id="ispublic" href="javascript:void(0)"></a>
 								</th>
 								<td>
-									<select name="ispublic" id="ispublic" ${fn:length(common.ispublic) == 0 ? 'disabled' : ''}>
+									<select name="ispublic" id="ispublic" tabindex="7" ${fn:length(common.ispublic) == 0 ? 'disabled' : ''}>
 										<option value="true" ${fn:length(common.ispublic) gt 0 && common.ispublic[0] ? 'selected' : ''}>Public</option>
 										<option value="false" ${fn:length(common.ispublic) gt 0 && !common.ispublic[0] ? 'selected' : ''}>Private</option>
 									</select>
@@ -138,7 +138,7 @@
 							<tr>
 								<td colspan="2" style="text-align: right; background-color: #fff">
 									<button id="button-delete">Delete Image(s)</button>
-									<button id="button-save">Save Changes</button>
+									<button tabindex="8" id="button-save">Save Changes</button>
 								</td>
 							</tr>
 						</tfoot>
@@ -148,8 +148,7 @@
 				<div style="clear: both"></div>
 
 				<div id="images">
-					<c:set var="iids" value="${fn:split(ids, ',')}" />
-					<c:forEach items="${iids}" var="id">
+					<c:forEach items="${ids}" var="id">
 					<a href="../../image/${id}"><img src="../../thumbnail/${id}"></a>
 					</c:forEach>
 				</div>

@@ -109,6 +109,9 @@ function init()
 			}));
 		}
 	});
+
+	var taken = document.getElementById('taken');
+	if(taken && !taken.disabled) taken.focus();
 }
 
 
