@@ -59,7 +59,7 @@
 								<th>
 									<label>Longitude/Latitude</label>
 								</th>
-								<td id="lonlat">None</td>
+								<td id="lonlat">Not applicable</td>
 							</tr>
 							<tr>
 								<th>

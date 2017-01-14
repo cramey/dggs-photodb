@@ -229,7 +229,7 @@ function updateLonLat(layer)
 		var ll = layer.getLatLng();
 		el.innerHTML = ll.lng.toFixed(5) + ', ' + ll.lat.toFixed(5);
 	} else {
-		el.innerHTML = 'None';
+		el.innerHTML = 'Not applicable';
 	}
 }
 
