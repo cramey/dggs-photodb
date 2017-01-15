@@ -104,6 +104,6 @@ th.col-tags, td.col-tags { resize: horizontal; overflow: auto; }
 .col-security { width: 70px; }
 th.col-controls { border: none !important; }
 td.col-controls {
-	width: 80px; text-align: left !important;
+	width: 90px; text-align: left !important;
 }
 .col-controls button { margin: 2px 4px; }

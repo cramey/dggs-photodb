@@ -55,7 +55,7 @@
 				var edit = document.getElementById('button-edit');
 				if(edit){
 					edit.onclick = function(){
-						var els = document.getElementsByName('id');
+						var els = document.getElementsByName('ids');
 						var ids = '';
 						for(var i = 0; i < els.length; i++){
 							if(ids.length > 0) ids += ',';
@@ -94,6 +94,19 @@
 						}
 					};
 				}
+
+				var saves = document.getElementsByName('button-save');
+				for(var i = 0; i < saves.length; i++){
+					saves[i].onclick = saveRow;
+				}
+
+				var saveall = document.getElementById('button-saveall');
+				if(saveall){
+					saveall.onclick = function(){
+						var saves = document.getElementsByName('button-save');
+						for(var i = 0; i < saves.length; i++) saves[i].click();
+					};
+				}
 			}
 
 
@@ -117,6 +130,59 @@
 						return;
 					}
 				}
+			}
+
+
+			function saveRow()
+			{
+				var params = '';
+
+				var tr = this.parentNode.parentNode;
+				var inputs = tr.getElementsByTagName('INPUT');
+				for(var i=0; i < inputs.length; i++){
+					if(params.length > 0) params += '&';
+					params += inputs[i].name + '=';
+					params += encodeURIComponent(inputs[i].value);
+				}
+
+				var tareas = tr.getElementsByTagName('TEXTAREA');
+				for(var i=0; i < tareas.length; i++){
+					if(params.length > 0) params += '&';
+					params += tareas[i].name + '=';
+					params += encodeURIComponent(tareas[i].value);
+				}
+
+				var selects = tr.getElementsByTagName('SELECT');
+				for(var i=0; i < selects.length; i++){
+					for(var j=0; j < selects[i].options.length; j++){
+						if(selects[i].options[j].selected){
+							if(params.length > 0) params += '&';
+							params += selects[i].name + '=';
+							params += encodeURIComponent(selects[i].options[j].value);
+						}
+					}
+				}
+
+				var button = this;
+				button.innerHTML = 'Saving..';
+
+				var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState === 4){
+						if(xhr.status === 200){
+							var obj = JSON.parse(xhr.responseText);
+							if(obj['success']){
+								if(button) button.innerHTML = 'Save OK';
+								return;
+							}
+						}
+						if(button) button.innerHTML = 'Save Error';
+						alert('Saving failed:\n' + xhr.responseText);
+					}
+				};
+				xhr.open('POST', '../image.json', true);
+				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+				xhr.send(params);
 			}
 		</script>
 	</head>
@@ -167,7 +233,7 @@
 						<c:set var="tags"><c:forEach items="${image.tags}" var="tag" varStatus="stat"><c:if test="${stat.count != 1}">, </c:if><c:out value="${tag.name}" /></c:forEach></c:set>
 						<tr>
 							<td class="col-id">
-								<input type="hidden" name="id" value="${image.ID}">
+								<input type="hidden" name="ids" value="${image.ID}">
 								<a href="javascript:void(0)">${image.ID}<div><img src="../../thumbnail/${image.ID}">${image.filename}</div></a>
 							</td>
 							<td class="col-taken">
@@ -177,7 +243,7 @@
 								<textarea name="credit" rows="1"><c:out value="${image.credit}"/></textarea>
 							</td>
 							<td class="col-title">
-								<textarea name="title" rows="1"><c:out value="${image.summary}"/></textarea>
+								<textarea name="summary" rows="1"><c:out value="${image.summary}"/></textarea>
 							</td>
 							<td class="col-description">
 								<textarea name="description" rows="1"><c:out value="${image.description}"/></textarea>
@@ -210,7 +276,7 @@
 								<button class="button" id="button-edit">Edit Mode (Do not save)</button>
 							</td>
 							<td class="col-controls">
-								<button class="button" id="button-save">Save All</button>
+								<button class="button" id="button-saveall">Save All</button>
 							</td>
 						</tr>
 					</tfoot>
