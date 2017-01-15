@@ -16,6 +16,9 @@
 		<link rel="stylesheet" href="../../js/leaflet.css">
 		<link rel="stylesheet" href="../../js/leaflet.mouseposition.css">
 		<link rel="stylesheet" href="../../css/edit.css">
+		<style>
+			.apptmpl-container { min-width: 450px !important; }
+		</style>
 		<script>var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};</script>
 		<script src="../../js/leaflet.js"></script>
 		<script src="../../js/leaflet.mouseposition.js"></script>

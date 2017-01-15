@@ -16,19 +16,35 @@
 		<link rel="stylesheet" href="../../js/leaflet.css">
 		<link rel="stylesheet" href="../../js/leaflet.mouseposition.css">
 		<link rel="stylesheet" href="../../css/edit.css">
+		<style>
+			.apptmpl-container { min-width: 750px !important; }
+		</style>
 		<script>
 			function init()
 			{
+				// IE string.trim() fix
+				if(!String.prototype.trim){
+					String.prototype.trim = function () {
+						return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+					};
+				}
+
 				var tareas = document.getElementsByTagName('textarea');
 				for(var i = 0; i < tareas.length; i++){
 					tareas[i].onfocus = function(){
 						if(this.parentNode.offsetHeight < 75){
 							this.parentNode.style.height = '75px';
 						}
+						if(this.parentNode.offsetWidth < 300){
+							this.parentNode.style.width = '300px';
+						}
 					};
 					tareas[i].onblur = function(){
 						if(this.parentNode.style.height === '75px'){
 							this.parentNode.style.height = '';
+						}
+						if(this.parentNode.style.width === '300px'){
+							this.parentNode.style.width = '';
 						}
 					};
 				}
@@ -47,6 +63,59 @@
 						}
 						window.location = '../edit/' + ids;
 					};
+				}
+
+				var append = document.getElementById('link-appendtags');
+				if(append){
+					append.onclick = function(){
+						var ntag = prompt("Append To All Tags\n    Which tag?");
+						if(ntag === null) return;
+
+						var tags = document.getElementsByName('tags');
+						for(var i = 0; i < tags.length; i++){
+							var ts = tagsSplit(tags[i].value);
+							ts.push(ntag);
+							tags[i].value = ts.join(', ');
+						}
+					};
+				}
+
+				var remove = document.getElementById('link-striptags');
+				if(remove){
+					remove.onclick = function(){
+						var rtag = prompt("Remove From All Tags\n    Which tag?");
+						if(rtag === null) return;
+
+						var tags = document.getElementsByName('tags');
+						for(var i = 0; i < tags.length; i++){
+							var ts = tagsSplit(tags[i].value);
+							tagsRemove(ts, rtag);
+							tags[i].value = ts.join(', ');
+						}
+					};
+				}
+			}
+
+
+			function tagsSplit(str)
+			{
+				var tags = str.split(',');
+				for(var i = 0; i < tags.length; i++){
+					tags[i] = tags[i].trim();
+					if(tags[i] === '') tags.splice(i, 1);
+				}
+				return tags;
+			}
+
+
+			function tagsRemove(tags, tag)
+			{
+				var tag = tag.toLowerCase();
+				for(var i = 0; i < tags.length; i++){
+					if(tags[i].toLowerCase() === tag){
+						tags.splice(i, 1);
+						return;
+					}
 				}
 			}
 		</script>
@@ -78,51 +147,59 @@
 				<table class="spreadsheet">
 					<thead>
 						<tr>
-							<th class="size-id">ID</th>
-							<th class="size-taken">Taken</th>
-							<th>Credit</th>
-							<th>Title</th>
-							<th>Description</th>
-							<th class="size-accuracy">Location Accuracy</th>
-							<th>Tags</th>
-							<th class="size-security">Security</th>
+							<th class="col-id">ID</th>
+							<th class="col-taken">Taken</th>
+							<th class="col-credit">Credit</th>
+							<th class="col-title">Title</th>
+							<th class="col-description">Description</th>
+							<th class="col-accuracy">Location Accuracy</th>
+							<th class="col-tags">
+								Tags<br>
+								<a id="link-appendtags" href="javascript:void(0)">append</a> /
+								<a id="link-striptags" href="javascript:void(0)">remove</a>
+							</th>
+							<th class="col-security">Security</th>
+							<th class="col-controls">&nbsp;</th>
 						</tr>
 					</thead>
 					<tbody>
 						<c:forEach items="${images}" var="image">
 						<c:set var="tags"><c:forEach items="${image.tags}" var="tag" varStatus="stat"><c:if test="${stat.count != 1}">, </c:if><c:out value="${tag.name}" /></c:forEach></c:set>
 						<tr>
-							<td class="size-id">
+							<td class="col-id">
 								<input type="hidden" name="id" value="${image.ID}">
 								<a href="javascript:void(0)">${image.ID}<div><img src="../../thumbnail/${image.ID}">${image.filename}</div></a>
 							</td>
-							<td class="size-taken">
+							<td class="col-taken">
 								<input type="text" name="taken" value="<fmt:formatDate pattern="M/d/yyyy" value="${image.taken}" />"/>
 							</td>
-							<td>
+							<td class="col-credit">
 								<textarea name="credit" rows="1"><c:out value="${image.credit}"/></textarea>
 							</td>
-							<td>
+							<td class="col-title">
 								<textarea name="title" rows="1"><c:out value="${image.summary}"/></textarea>
 							</td>
-							<td>
+							<td class="col-description">
 								<textarea name="description" rows="1"><c:out value="${image.description}"/></textarea>
 							</td>
-							<td class="size-accuracy">
+							<td class="col-accuracy">
 								<select name="accuracy">
 									<option value="0" ${image.accuracy == 0 ? 'selected' : ''}>Good</option>
 									<option value="1" ${image.accuracy == 1 ? 'selected' : ''}>Fair</option>
 									<option value="2" ${image.accuracy == 2 ? 'selected' : ''}>Poor</option>
 								</select>
 							</td>
-							<td>
+							<td class="col-tags">
 								<input type="text" name="tags" value="<c:out value="${tags}"/>">
 							</td>
-							<td class="size-security">
+							<td class="col-security">
 								<select name="ispublic">
 									<option value="true" ${image.isPublic ? 'selected' : ''}>Public</option>
 									<option value="false" ${!image.isPublic ? 'selected' : ''}>Private</option>
 								</select>
+							</td>
+							<td class="col-controls">
+								<button class="button" name="button-save">Save</button>
 							</td>
 						</tr>
 						</c:forEach>
@@ -131,7 +208,9 @@
 						<tr>
 							<td colspan="8">
 								<button class="button" id="button-edit">Edit Mode (Do not save)</button>
-								<button class="button" id="button-save">Save Changes</button>
+							</td>
+							<td class="col-controls">
+								<button class="button" id="button-save">Save All</button>
 							</td>
 						</tr>
 					</tfoot>

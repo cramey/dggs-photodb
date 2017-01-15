@@ -50,18 +50,16 @@
 }
 .spreadsheet thead th {
 	font-size: 12px;
-	resize: horizontal;
 }
 .spreadsheet tbody td {
 	font-size: 0;
-	resize: both;
+	height: 30px;
 }
 .spreadsheet tbody td, .spreadsheet thead th {
 	border: 1px solid #aaa;
 	margin: 0; padding: 0;
 	box-sizing: border-box;
-	overflow: auto;
-	vertical-align: top;
+	vertical-align: middle;
 }
 .spreadsheet tbody textarea {
 	resize: none;
@@ -73,9 +71,6 @@
 	margin: 0; padding: 0;
 	width: 100%; height: 100%;
 	display: block;
-}
-.spreadsheet tbody input:focus, .spreadsheet tbody textarea:focus {
-	border: none;
 }
 .spreadsheet tbody td a { font-size: 14px; }
 .spreadsheet tbody td a div { display: none; }
@@ -95,12 +90,15 @@
 	display: block;
 	margin: auto;
 }
-.spreadsheet tfoot td { text-align: right; padding: 16px 0 0 0; }
-.size-id, .size-taken, .size-accuracy, .size-security {
-	resize: none !important;
-}
-.size-id { width: 55px; text-align: center; }
-.size-taken { width: 75px; }
-.size-accuracy { width: 60px; }
-.size-security { width: 70px; }
+.spreadsheet tfoot td { text-align: right; padding: 8px 0 0 0; }
 
+th.col-credit, th.col-title, th.col-description { resize: horizontal; overflow: auto; }
+td.col-credit, td.col-title, th.col-description { resize: both; overflow: auto; }
+th.col-tags, td.col-tags { resize: horizontal; overflow: auto; }
+.col-id { width: 55px; text-align: center; }
+.col-taken { width: 75px; }
+.col-taken input { text-align: center; }
+.col-accuracy { width: 60px; }
+.col-security { width: 70px; }
+.col-controls { width: 80px; border: none !important; text-align: left !important; }
+.col-controls button { margin: 2px 4px; }
