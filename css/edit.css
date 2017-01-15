@@ -51,6 +51,7 @@
 .spreadsheet thead th {
 	font-size: 12px;
 }
+.spreadsheet tbody tr:nth-child(odd) { background-color: #eee; }
 .spreadsheet tbody td {
 	font-size: 0;
 	height: 30px;
@@ -65,6 +66,7 @@
 	resize: none;
 }
 .spreadsheet tbody input, .spreadsheet tbody textarea, .spreadsheet tbody select {
+	background-color: transparent;
 	font-size: 14px;
 	border: none;
 	box-sizing: border-box;
@@ -75,15 +77,15 @@
 .spreadsheet tbody td a { font-size: 14px; }
 .spreadsheet tbody td a div { display: none; }
 .spreadsheet tbody td a:hover div {
-	background-color: #fff;
 	display: block;
-	border: 2px solid black;
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	color: #000;
-	font-weight: bold;
 	padding: 4px;
+	position: absolute;
+	right: 8px;
+	bottom: 8px;
+	background-color: #fff;
+	color: #000;
+	border: 2px solid black;
+	font-weight: bold;
 }
 .spreadsheet tbody td a:hover div img {
 	border: none;
@@ -100,5 +102,8 @@ th.col-tags, td.col-tags { resize: horizontal; overflow: auto; }
 .col-taken input { text-align: center; }
 .col-accuracy { width: 60px; }
 .col-security { width: 70px; }
-.col-controls { width: 80px; border: none !important; text-align: left !important; }
+th.col-controls { border: none !important; }
+td.col-controls {
+	width: 80px; text-align: left !important;
+}
 .col-controls button { margin: 2px 4px; }
