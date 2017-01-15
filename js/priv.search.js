@@ -64,6 +64,13 @@ function init()
 		};
 	}
 
+	var selected_spreadsheet = document.getElementById('selected-spreadsheet');
+	if(selected_spreadsheet){
+		selected_spreadsheet.onclick = function(){
+			window.location.href = 'spreadsheet/' + selected.join(',');
+		};
+	}
+
 	var selected_delete = document.getElementById('selected-delete');
 	if(selected_delete) selected_delete.onclick = deleteSelected;
 

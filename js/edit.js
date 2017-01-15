@@ -34,6 +34,14 @@ function init()
 	var del = document.getElementById('button-delete');
 	if(del) del.onclick = deleteImage;
 
+	var spreadsheet = document.getElementById('button-spreadsheet');
+	if(spreadsheet){
+		spreadsheet.onclick = function(){
+			var ids = document.getElementById('ids');
+			if(ids) window.location = '../spreadsheet/' + ids.value;
+		};
+	}
+
 	var dis = document.getElementsByTagName('a');
 	for(var i = 0; i < dis.length; i++){
 		var forid = dis[i].getAttribute('data-for-id');

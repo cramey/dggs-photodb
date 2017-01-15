@@ -1,5 +1,14 @@
 .apptmpl-container { min-width: 450px !important; }
 .footer { font-size: 12px; }
+.button {
+	box-sizing: content-box;
+	vertical-align: middle;
+	border-radius: 5px;
+	height: 24px;
+	border: 1px solid #aaa;
+	font-family: Georgia, serif;
+	font-size: 14px;
+}
 #images {
 	overflow-y: scroll;
 	height: 300px;
@@ -16,7 +25,7 @@
 	width: 400px;
 }
 #tags, #description, #summary, #credit { width: 100%; }
-#button-delete { margin: 0 32px 0 0; }
+#button-delete, #button-spreadsheet, #button-edit { margin: 0 32px 0 0; }
 .ffields { border-collapse: collapse; width: 100%; }
 .ffields td, .ffields th {
 	padding: 0; margin: 0;
@@ -34,5 +43,64 @@
 .ffields input, .ffields textarea, .ffields select { box-sizing: border-box; }
 .ffields label { display: block; font-weight: bold; font-size: 14px; }
 .ffields input { margin: 0 0 16px 0; }
-
 .tbl-container { overflow: hidden; min-width: 400px; }
+.spreadsheet {
+	width: 100%;
+	border-collapse: collapse;
+}
+.spreadsheet thead th {
+	font-size: 12px;
+	resize: horizontal;
+}
+.spreadsheet tbody td {
+	font-size: 0;
+	resize: both;
+}
+.spreadsheet tbody td, .spreadsheet thead th {
+	border: 1px solid #aaa;
+	margin: 0; padding: 0;
+	box-sizing: border-box;
+	overflow: auto;
+	vertical-align: top;
+}
+.spreadsheet tbody textarea {
+	resize: none;
+}
+.spreadsheet tbody input, .spreadsheet tbody textarea, .spreadsheet tbody select {
+	font-size: 14px;
+	border: none;
+	box-sizing: border-box;
+	margin: 0; padding: 0;
+	width: 100%; height: 100%;
+	display: block;
+}
+.spreadsheet tbody input:focus, .spreadsheet tbody textarea:focus {
+	border: none;
+}
+.spreadsheet tbody td a { font-size: 14px; }
+.spreadsheet tbody td a div { display: none; }
+.spreadsheet tbody td a:hover div {
+	background-color: #fff;
+	display: block;
+	border: 2px solid black;
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	color: #000;
+	font-weight: bold;
+	padding: 4px;
+}
+.spreadsheet tbody td a:hover div img {
+	border: none;
+	display: block;
+	margin: auto;
+}
+.spreadsheet tfoot td { text-align: right; padding: 16px 0 0 0; }
+.size-id, .size-taken, .size-accuracy, .size-security {
+	resize: none !important;
+}
+.size-id { width: 55px; text-align: center; }
+.size-taken { width: 75px; }
+.size-accuracy { width: 60px; }
+.size-security { width: 70px; }
+

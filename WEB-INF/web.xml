@@ -89,21 +89,31 @@
 
 
 	<servlet>
-		<servlet-name>PrivateEditPage</servlet-name>
+		<servlet-name>ImageEditServlet</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.page.ImageEditServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>PrivateEditPage</servlet-name>
+		<servlet-name>ImageEditServlet</servlet-name>
 		<url-pattern>/private/edit/*</url-pattern>
 	</servlet-mapping>
 
 
 	<servlet>
-		<servlet-name>PrivateUploadPage</servlet-name>
+		<servlet-name>ImageSpreadsheetServlet</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.page.ImageSpreadsheetServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ImageSpreadsheetServlet</servlet-name>
+		<url-pattern>/private/spreadsheet/*</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>ImageUploadServlet</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.page.ImageUploadServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>PrivateUploadPage</servlet-name>
+		<servlet-name>ImageUploadServlet</servlet-name>
 		<url-pattern>/private/upload.html</url-pattern>
 	</servlet-mapping>
 

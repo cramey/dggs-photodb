@@ -15,6 +15,12 @@
 	</sql>
 
 
+	<select id="getByIDs" resultSetType="FORWARD_ONLY" resultMap="ImageMap">
+		<include refid="getBy" />
+		FROM image AS i
+		WHERE i.image_id <foreach item="item" index="index" collection="list" open="IN (" separator="," close=")">${item}</foreach>
+	</select>
+
 	<select id="getByID" resultSetType="FORWARD_ONLY" parameterType="int" resultMap="ImageMap">
 		<include refid="getBy" />
 		FROM image AS i
