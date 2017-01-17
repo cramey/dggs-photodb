@@ -192,6 +192,11 @@
 			</div>
 
 			<div class="apptmpl-content">
+				<div style="margin: 0 0 8px 0">
+					Supported image types:
+					<span style="font-weight: bold">JPEG, PNG, BMP, GIF</span>
+				</div>
+
 				<form action="upload" method="POST" enctype="multipart/form-data">
 					<div id="file-control">
 						Select files: <input type="file" id="file-select" name="files" multiple="multiple">
