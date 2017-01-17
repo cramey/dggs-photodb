@@ -91,7 +91,7 @@
 								</select>
 							</td>
 							<td class="col-tags">
-								<input type="text" name="tags" value="<c:out value="${tags}"/>">
+								<input type="text" name="tags" placeholder="panorama, sampling, fault, glacier, helicopter, Denali" value="<c:out value="${tags}"/>">
 							</td>
 							<td class="col-security">
 								<select name="ispublic">
