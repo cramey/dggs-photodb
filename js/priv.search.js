@@ -1,4 +1,5 @@
-var map, aoi, features, last;
+var map, aoi, features;
+var last = null;
 var selected = [];
 var searchok = true;
 var skiphash = false;
@@ -265,19 +266,17 @@ function search(back, noupdate)
 
 	// This query is dirty if it's different from the previous
 	// query (not counting the page we're on)
-	var dirty = query !== last ? true : false;
+	var dirty = query !== last && last !== null ? true : false;
 
 	var page = document.getElementById('search-page');
-	var pg = page.value;
+	var pg = dirty ? 0 : page.value;
 
 	if(!dirty && typeof back === 'boolean'){
 		pg = Math.max(0, Number(page.value) + (back ? -1 : 1));
 	}
 
 	// Reset selected if the query is dirty
-	if(dirty){
-		updateSelected(true);
-	}
+	if(dirty) updateSelected(true);
 
 	var params = query + '&page=' + pg;
 		
