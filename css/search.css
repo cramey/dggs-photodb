@@ -51,8 +51,14 @@
 #search-results img {
 	border: none;
 }
-
 .footer { font-size: 12px; }
+.noresults {
+	text-align: center; margin: 16px 8px;
+}
+.noresults span {
+	background-color: #ff1;
+	padding: 4px 8px;
+}
 @media screen and (min-width: 960px){
 	#map { width: 400px; }
 	#search-field { width: 330px; }

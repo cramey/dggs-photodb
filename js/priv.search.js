@@ -312,7 +312,11 @@ function search(back, noupdate)
 					// and there are no results, go ahead
 					// and hide all the search controls
 					if(src) src.style.display = 'none';
-					if(results) results.innerHTML = '';
+					if(results){
+						results.innerHTML = '<div class="noresults">' +
+							'<span>No results found.</span>' +
+							'</div>';
+					}
 
 					return;
 				}
