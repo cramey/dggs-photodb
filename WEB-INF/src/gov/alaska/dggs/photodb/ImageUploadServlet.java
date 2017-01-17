@@ -266,7 +266,7 @@ public class ImageUploadServlet extends HttpServlet
 							ps.setBinaryStream(c++, is);
 
 							if(thumbnail != null) ps.setBytes(c++, thumbnail);
-							else ps.setNull(c++, Types.BLOB);
+							else ps.setNull(c++, Types.BINARY);
 
 							ps.setString(c++, filename);
 
