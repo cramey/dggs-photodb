@@ -61,14 +61,18 @@ function init()
 	var selected_edit = document.getElementById('selected-edit');
 	if(selected_edit){
 		selected_edit.onclick = function(){
-			window.location.href = 'edit/' + selected.join(',');
+			if(selected.length > 0){
+				window.location.href = 'edit/' + selected.join(',');
+			}
 		};
 	}
 
 	var selected_spreadsheet = document.getElementById('selected-spreadsheet');
 	if(selected_spreadsheet){
 		selected_spreadsheet.onclick = function(){
-			window.location.href = 'spreadsheet/' + selected.join(',');
+			if(selected.length > 0){
+				window.location.href = 'spreadsheet/' + selected.join(',');
+			}
 		};
 	}
 
@@ -525,6 +529,8 @@ function updateSelected(empty)
 
 function deleteSelected()
 {
+	if(selected.length < 1) return;
+
 	var ok = confirm('Delete ' + selected.length + ' image(s)?');
 	if(!ok) return;
 

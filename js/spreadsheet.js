@@ -1,6 +1,6 @@
 function init()
 {
-	// IE string.trim() fix
+	// IE string.trim() shim
 	if(!String.prototype.trim){
 		String.prototype.trim = function () {
 			return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
@@ -39,7 +39,7 @@ function init()
 				if(ids.length > 0) ids += ',';
 				ids += els[i].value;
 			}
-			window.location = '../edit/' + ids;
+			window.location.href = '../edit/' + ids;
 		};
 	}
 

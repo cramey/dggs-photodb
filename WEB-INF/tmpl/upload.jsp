@@ -175,6 +175,7 @@
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
 				<span class="apptmpl-goldbar-right"></span>
 
+				<a href="../logout">Logout</a>
 				<a href="../help">Help</a>
 			</div>
 

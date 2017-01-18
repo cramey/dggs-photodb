@@ -1,4 +1,12 @@
 <Context>
 	<ResourceLink name="jdbc/photodb" global="jdbc/photodb"
 		type="javax.sql.DataSource" />
+
+	<Realm className="org.apache.catalina.realm.JNDIRealm"
+		connectionURL="ldaps://ldap.state.ak.us:636"
+		userBase="ou=People,o=state.ak.us"
+		userSearch="(&amp;(uid={0})(|(departmentNumber=10Z60F)(departmentNumber=10Z60E)))"
+		userSubtree="false"
+		userRoleName="employeeNumber"
+	/>
 </Context>

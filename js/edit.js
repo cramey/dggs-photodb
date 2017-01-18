@@ -38,7 +38,7 @@ function init()
 	if(spreadsheet){
 		spreadsheet.onclick = function(){
 			var ids = document.getElementById('ids');
-			if(ids) window.location = '../spreadsheet/' + ids.value;
+			if(ids) window.location.href = '../spreadsheet/' + ids.value;
 		};
 	}
 
@@ -218,7 +218,7 @@ function deleteImage()
 			if(xhr.status === 200){
 				var obj = JSON.parse(xhr.responseText);
 				if(obj['success']){
-					window.location = '../';
+					window.location.href = '../';
 					return;
 				}
 			}

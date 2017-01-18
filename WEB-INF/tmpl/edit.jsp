@@ -32,6 +32,7 @@
 				<span class="apptmpl-goldbar-right"></span>
 
 				<a href="../upload.html">Upload</a>
+				<a href="../../logout">Logout</a>
 				<a href="help/">Help</a>
 			</div>
 
