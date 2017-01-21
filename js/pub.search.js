@@ -218,7 +218,7 @@ function search(back, noupdate)
 
 	// This query is dirty if it's different from the previous
 	// query (not counting the page we're on)
-	var dirty = query !== last && last !== null ? true : false;
+	var dirty = query !== last ? true : false;
 
 	var page = document.getElementById('search-page');
 	var pg = dirty ? 0 : page.value;
