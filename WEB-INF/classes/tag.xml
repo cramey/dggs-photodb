@@ -29,6 +29,7 @@
 		<include refid="getBy" />
 		FROM tag AS t
 		WHERE t.name = #{name}
+		LIMIT 1
 	</select>
 
 

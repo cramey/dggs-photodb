@@ -81,18 +81,7 @@ public class ImageServlet extends HttpServlet
 								}
 
 								if(!contains){
-									Tag tag = sess.selectOne(
-										"gov.alaska.dggs.photodb.Tag.getByName", tx
-									);
-
-									if(tag == null){
-										tag = new Tag();
-										tag.setName(tx);
-										sess.insert("gov.alaska.dggs.photodb.Tag.insert", tag);
-										if(tag.getID() == null){
-											throw new Exception("Tag insert failed.");
-										}
-									}
+									Tag tag = getOrAddTag(tx);
 
 									HashMap m = new HashMap();
 									m.put("image", image);
@@ -186,6 +175,26 @@ public class ImageServlet extends HttpServlet
 			response.getOutputStream().print(ex.getMessage());
 		} finally {
 			sess.close();	
+		}
+	}
+
+
+	public synchronized Tag getOrAddTag(String name) throws Exception
+	{
+		try (SqlSession sess = PhotoDBFactory.openSession()){
+			Tag tag = sess.selectOne(
+				"gov.alaska.dggs.photodb.Tag.getByName", name
+			);
+
+			if(tag == null){
+				tag = new Tag();
+				tag.setName(name);
+				sess.insert("gov.alaska.dggs.photodb.Tag.insert", tag);
+				if(tag.getID() == null) throw new Exception("Tag insert failed.");
+				sess.commit();
+			}
+
+			return tag;
 		}
 	}
 }
