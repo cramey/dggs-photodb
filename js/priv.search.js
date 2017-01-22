@@ -18,7 +18,7 @@ function init()
 
 	if('onhashchange' in window){
 		window.onhashchange = function(){
-			if(!skiphash && window.location.hash.length > 1){
+			if(!skiphash){
 				decodeParameters(window.location.hash.substring(1));
 				search(null, true);
 			}
@@ -51,10 +51,10 @@ function init()
 	var search_reset = document.getElementById('search-reset');
 	if(search_reset){
 		search_reset.onclick = function(){
-			updateSelected(true);
+			resetSearch();
+
 			skiphash = true;
 			window.location.hash = '';
-			window.location.reload(false);
 		};
 	}
 
@@ -343,9 +343,6 @@ function search(back, noupdate)
 					}
 				}
 
-				var map_el = document.getElementById('map');
-				if(map_el) map_el.style.display = 'block';
-
 				var tmpl = document.getElementById('tmpl-search');
 				if(results && tmpl){
 					results.innerHTML = Mustache.render(
@@ -380,6 +377,8 @@ function search(back, noupdate)
 
 function decodeParameters(params)
 {
+	resetSearch();
+
 	if(params.length < 1) return;
 
 	var kvs = params.split('&');
@@ -553,4 +552,59 @@ function deleteSelected()
 	xhr.open('POST', 'image.json', true);
 	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	xhr.send('action=delete&ids=' + selected.join(','));
+}
+
+
+function resetSearch()
+{
+	last = null;
+	updateSelected(true);
+
+	aoi.clearLayers();
+	features.clearLayers();
+
+	var search = document.getElementById('search-field');
+	if(search){
+		search.value = '';
+		search.focus();
+	}
+
+	var page = document.getElementById('search-page');
+	if(page) page.value = '0';
+
+	var show = document.getElementById('search-show');
+	if(show){
+		for(var j = 0; j < show.options.length; j++){
+			if(show.options[j].value === '6'){
+				show.options[j].selected = true;
+				break;
+			}
+		}
+	}
+
+	var desc = document.getElementById('search-description');
+	if(desc){
+		for(var j = 0; j < desc.options.length; j++){
+			if(desc.options[j].value === ''){
+				desc.options[j].selected = true;
+				break;
+			}
+		}
+	}
+
+	var loc = document.getElementById('search-location');
+	if(loc){
+		for(var j = 0; j < loc.options.length; j++){
+			if(loc.options[j].value === ''){
+				loc.options[j].selected = true;
+				break;
+			}
+		}
+	}
+
+	var src = document.getElementById('search-results-control');
+	if(src) src.style.display = 'none';
+
+	var results = document.getElementById('search-results');
+	if(results) results.innerHTML = '';
 }
