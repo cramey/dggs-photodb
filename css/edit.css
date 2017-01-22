@@ -17,10 +17,16 @@
 }
 #images a { display: inline-block; vertical-align: top; }
 #images a img { border: none; }
-#map {
+#map-container {
 	display: inline-block;
 	float: right;
 	margin: 0 0 4px 8px;
+	width: 400px;
+	font-size: 13px;
+	text-align: center;
+	border: 1px solid #aaa;
+}
+#map {
 	height: 400px;
 	width: 400px;
 }
