@@ -11,6 +11,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="x-ua-compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 		<title>Alaska Division of Geological &amp; Geophysical Surveys Photo Database</title>
 		<link rel="stylesheet" href="../css/apptmpl.min.css">
 		<c:if test="${!empty image.geoJSON}">
@@ -18,7 +19,7 @@
 		<link rel="stylesheet" href="../js/leaflet.mouseposition.css">
 		</c:if>
 		<style>
-			.apptmpl-container { min-width: 500px !important; }
+			.apptmpl-container { min-width: 450px !important; }
 			.footer { font-size: 12px; }
 			a img { border: none; }
 			dl { margin: 0; padding: 0; }
