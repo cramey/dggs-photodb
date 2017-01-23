@@ -53,7 +53,7 @@
 				<input type="hidden" name="ids" id="ids" value="<c:out value="${ids_str}"/>">
 				<div id="map-container">
 					<div id="map"></div>
-					Click to add marker, click and drag to move, or double click to remove
+					Click to add location, click and drag to move, or double click to remove
 				</div>
 
 				<c:if test="${!empty common.taken}">

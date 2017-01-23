@@ -130,7 +130,7 @@ public class ImageUploadServlet extends HttpServlet
 
 							// Check mime types, don't accept non-images
 							if(mime == null || !mime.startsWith("image/")){
-								errors.add(filename + ", is not an image (MIME)");
+								errors.add(filename + ", is not a supported image (MIME)");
 								continue;
 							}
 						} catch(Exception exe){
@@ -256,7 +256,7 @@ public class ImageUploadServlet extends HttpServlet
 							// If the image scaling throws an exception, it's
 							// probably because it's an invalid image, so just ignore
 							// it.
-							errors.add(filename + ", is not an image (ImageIO)");
+							errors.add(filename + ", is not a supported image (ImageIO)");
 							continue;
 						}
 
