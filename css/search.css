@@ -1,14 +1,18 @@
 .apptmpl-container { min-width: 450px !important; }
 #map {
 	height: 300px;
-	width: 300px;
+	width: 100%;
 	border: 1px solid #aaa;
-	margin: 8px 0 8px auto;
+	margin: 8px 0 0 auto;
+	box-sizing: border-box;
 	text-align: left;
 }
 #search-button, #search-prev, #search-next { user-select: none; }
-#search-control { margin: 0 4px; float: right; }
-#search-results-control { display: none; }
+#search-control { margin: 0 4px; float: right; width: 425px; }
+#search-results-control {
+	display: none; text-align: center;
+}
+#search-results-control div { margin: 8px 0 0 0; }
 #search-reset, #search-field, #search-button, #search-prev, #search-next, #selected-delete, #selected-edit, #selected-spreadsheet, #selected-all, #selected-unselect-all {
 	box-sizing: content-box;
 	vertical-align: middle;
@@ -20,9 +24,9 @@
 }
 #search-field {
 	padding: 2px;
-	width: 225px;
+	width: 100%;
 }
-#search-button { padding: 2px 8px; }
+#search-button { padding: 2px 8px; margin: 0 0 0 10px; }
 #search-control {
 	text-align: right;
 	margin-bottom: 16px;
@@ -51,25 +55,17 @@
 #search-results img {
 	border: none;
 }
+.search-control-tbl { display: table; width: 100%; }
+.search-control-cell { display: table-cell; }
 .footer { font-size: 12px; }
-.noresults {
+.no-results, .err-results {
 	text-align: center; margin: 16px 8px;
 }
-.noresults span {
+.no-results span {
 	background-color: #ff1;
 	padding: 4px 8px;
 }
-@media screen and (min-width: 960px){
-	#map { width: 400px; }
-	#search-field { width: 330px; }
-}
-@media screen and (min-width: 1200px){
-	#map { width: 575px; }
-	#search-field { width: 500px; }
-}
-@media screen and (min-height: 640px){
-	#map { height: 400px; }
-}
-@media screen and (min-height: 800px){
-	#map { height: 500px; }
+.err-results span {
+	background-color: #f88;
+	padding: 4px 8px;
 }

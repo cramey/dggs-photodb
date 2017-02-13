@@ -37,9 +37,13 @@ function init()
 	var search_show = document.getElementById('search-show');
 	if(search_show) search_show.onchange = search;
 
+	var search_sort = document.getElementById('search-sort');
+	if(search_sort) search_sort.onchange = search;
+
 	var search_reset = document.getElementById('search-reset');
 	if(search_reset){
 		search_reset.onclick = function(){
+			last = null;
 			resetSearch();
 
 			skiphash = true;
@@ -181,6 +185,15 @@ function search(back, noupdate)
 	var show = document.getElementById('search-show');
 	var sh = show ? Number(show.value) : 6;
 	if(sh !== 6) query += 'show=' + sh;
+
+	// Add the sort (if it's not "score desc" , the default)
+	var sort = document.getElementById('search-sort');
+	if(sort){
+		if(sort.value !== 'score desc'){
+			if(query.length > 0) query += '&';
+			query += 'sort=' + encodeURIComponent(sort.value);
+		}
+	}
 	
 	// Add in the textual query (if there is one)
 	var q = document.getElementById('search-field');
@@ -203,32 +216,19 @@ function search(back, noupdate)
 
 		query += 'aoi=' + encodeURIComponent(geojson);
 	}
-
-	// Don't run empty queries
-	if(query.length === 0){
-		skiphash = true;
-		window.location.hash = '';
-		var results = document.getElementById('search-results');
-		var src = document.getElementById('search-results-control');
-		if(src) src.style.display = 'none';
-		if(results) results.innerHTML = '';
-		features.clearLayers();
-		searchok = true;
-		return;
-	}
-
+	
 	// This query is dirty if it's different from the previous
 	// query (not counting the page we're on)
 	var dirty = query !== last ? true : false;
 
 	var page = document.getElementById('search-page');
-	var pg = dirty ? 0 : page.value;
+	var pg = dirty ? 0 : Number(page.value);
 
 	if(!dirty && typeof back === 'boolean'){
-		pg = Math.max(0, Number(page.value) + (back ? -1 : 1));
+		pg = Math.max(0, pg + (back ? -1 : 1));
 	}
 
-	var params = query + '&page=' + pg;
+	var params = query + (query.length > 0 ? '&' : '') + 'page=' + pg;
 		
 	var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
 	xhr.onreadystatechange = function(){
@@ -240,7 +240,7 @@ function search(back, noupdate)
 				// If there are results, or the query is "dirty"
 				// commit the query and the current page and update
 				// the current query hash
-				if(obj.length > 0 || dirty){
+				if('docs' in obj || dirty){
 					page.value = pg;
 					last = query;
 					if(noupdate !== true){
@@ -249,41 +249,43 @@ function search(back, noupdate)
 					}
 				}
 
-				var src = document.getElementById('search-results-control');
-				if(obj.length < 1){
-					searchok = true;
-
-					// If there's no results, and the query
-					// isn't dirty, stop right here
-					if(!dirty) return;
-
-					// On the other hand, if the query is dirty
-					// and there are no results, go ahead
-					// and hide all the search controls
-					if(src) src.style.display = 'none';
-					if(results){
-						results.innerHTML = '<div class="noresults">' +
-							'<span>No results found.</span>' +
-							'</div>';
-					}
-					return;
-				}
-
-				if(src) src.style.display = 'block';
-
 				features.clearLayers();
-				for(var i = 0; i < obj.length; i++){
-					var o = obj[i];
-					if('geoJSON' in o){
-						// Clone the geojson object, allowing
-						// the original reference to be freed
-						var geojson = {
-							type: 'Feature',
-							properties: { color: '#9f00ff' },
-							geometry: JSON.parse(JSON.stringify(o['geoJSON']))
-						};
-						features.addData(geojson);
+
+				var src = document.getElementById('search-results-control');
+				if('docs' in obj && obj['docs'].length > 0){
+					var search_prev = document.getElementById('search-prev');
+					if(search_prev) search_prev.disabled = (pg == 0);
+					
+					var search_next = document.getElementById('search-next');
+					if(search_next)
+						search_next.disabled = ((pg + 1) * sh >= obj['numFound']);
+
+					// Show search controls
+					if(src) src.style.display = 'block';
+
+					var stats = document.getElementById('search-stats');
+					if(stats){
+						var start = (sh * pg);
+						stats.innerHTML = 'Displaying ' + (start + 1) +
+							'-' + (start + obj['docs'].length) +
+							' of ' + obj['numFound'];
 					}
+
+					for(var i = 0; i < obj['docs'].length; i++){
+						var o = obj['docs'][i];
+						if('geojson' in o){
+							// Clone the geojson object, allowing
+							// the original reference to be freed
+							var geojson = {
+								type: 'Feature',
+								properties: { color: '#9f00ff' },
+								geometry: JSON.parse(JSON.stringify(o['geojson']))
+							};
+							features.addData(geojson);
+						}
+					}
+				} else {
+					if(src) src.style.display = 'none';
 				}
 
 				var tmpl = document.getElementById('tmpl-search');
@@ -340,6 +342,18 @@ function decodeParameters(params)
 					}
 				}
 			break;
+
+			case 'sort':
+				var sort = document.getElementById('search-sort');
+				if(sort){
+					for(var j = 0; j < sort.options.length; j++){
+						if(sort.options[j].value === v){ 
+							sort.options[j].selected = true;
+							break;
+						}
+					}
+				}
+			break;
 		}
 	}
 }
@@ -347,8 +361,6 @@ function decodeParameters(params)
 
 function resetSearch()
 {
-	last = null;
-
 	aoi.clearLayers();
 	features.clearLayers();
 
@@ -366,6 +378,16 @@ function resetSearch()
 		for(var j = 0; j < show.options.length; j++){
 			if(show.options[j].value === '6'){
 				show.options[j].selected = true;
+				break;
+			}
+		}
+	}
+
+	var sort = document.getElementById('search-sort');
+	if(sort){
+		for(var j = 0; j < sort.options.length; j++){
+			if(sort.options[j].value === 'score desc'){
+				sort.options[j].selected = true;
 				break;
 			}
 		}

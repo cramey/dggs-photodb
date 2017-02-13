@@ -110,10 +110,10 @@
 		<script src="../js/priv.search.js"></script>
 		<script id="tmpl-search" type="x-tmpl-mustache">
 			{{#.}}
-				<a href="javascript:void(0)" data-image-id="{{ID}}" title="{{filename}}" {{#selected}}class="selected"{{/selected}}>
-					<img src="../thumbnail/{{ID}}">
+				<a href="javascript:void(0)" data-image-id="{{id}}" title="{{filename}}" {{#selected}}class="selected"{{/selected}}>
+					<img src="../thumbnail/{{id}}">
 					<div>
-						{{summary}}
+						{{title}}
 						<br>
 						{{credit}} {{taken}}
 					</div>

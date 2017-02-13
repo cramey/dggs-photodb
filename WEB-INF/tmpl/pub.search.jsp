@@ -45,22 +45,42 @@
 			<div class="apptmpl-content">
 				<div id="search-control">
 					<input type="hidden" name="search-page" id="search-page" value="0">
-					<input type="text" id="search-field" name="search-field" placeholder="Search for .. " autocomplete="off">
-					<button id="search-button">Search</button>
+					<div class="search-control-tbl">
+						<div class="search-control-cell" style="width: 100%">
+							<input type="text" id="search-field" name="search-field" placeholder="Search for .. " autocomplete="off">
+						</div>
+						<div class="search-control-cell">
+							<button id="search-button">Search</button>
+						</div>
+					</div>
 					<div id="map"></div>
 					<div id="search-results-control">
-						<button id="search-reset">Reset</button> |
-						<button id="search-prev">Previous</button> |
-						Showing: <select name="search-show" id="search-show">
-							<option value="6" selected>6</option>
-							<option value="12">12</option>
-							<option value="24">24</option>
-							<option value="96">96</option>
-						</select>
-						| <button id="search-next">Next</button>
+						<div>
+							<button id="search-reset">Reset</button> |
+							<button id="search-prev">Previous</button>
+							<span id="search-stats"></span>
+							<button id="search-next">Next</button>
+						</div>
+
+						<div>
+							Showing
+							<select name="search-show" id="search-show">
+								<option value="6" selected>6</option>
+								<option value="12">12</option>
+								<option value="24">24</option>
+								<option value="96">96</option>
+							</select> |
+							Sort by
+							<select name="search-sort" id="search-sort">
+								<option value="score desc">Score</option>
+								<option value="title desc">Title</option>
+								<option value="taken desc">Taken</option>
+							</select>
+						</div>
 					</div>
 				</div>
 				<div id="search-results"></div>
+
 				<div style="clear: both"></div>
 
 				<hr>
@@ -81,13 +101,27 @@
 		<script src="js/util.js"></script>
 		<script src="js/pub.search.js"></script>
 		<script id="tmpl-search" type="x-tmpl-mustache">
-			{{#.}}
-				<a href="detail/{{ID}}" title="{{filename}}">
-					<img src="thumbnail/{{ID}}">
-					<div>{{summary}}</div>
-					<div>{{credit}} {{taken}}</div>
-				</a>
-			{{/.}}
+			{{^error}}
+				{{#docs}}
+					<a href="detail/{{id}}" title="{{filename}}">
+						<img src="thumbnail/{{id}}">
+						<div>{{title}}</div>
+						<div>{{credit}} {{taken}}</div>
+					</a>
+				{{/docs}}
+
+				{{^docs}}
+					<div class="no-results">
+						<span>No results found.</span>
+					</div>
+				{{/docs}}
+			{{/error}}
+
+			{{#error}}
+					<div class="err-results">
+						<span>Error: {{msg}}</span>
+					</div>
+			{{/error}}
 		</script>
 	</body>
 </html>

@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.text.DateFormat;
 
-import flexjson.JSONSerializer;
+import mjson.Json;
 
 import org.apache.ibatis.session.SqlSession;
 
@@ -27,10 +27,6 @@ import gov.alaska.dggs.photodb.model.Tag;
 
 public class ImageServlet extends HttpServlet
 {
-	private static JSONSerializer serializer;
-	static { serializer = new JSONSerializer(); }
-
-
 	@SuppressWarnings("unchecked")
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
@@ -166,7 +162,9 @@ public class ImageServlet extends HttpServlet
 			out.put("success", true);
 
 			response.setContentType("application/json");
-			serializer.serialize(out, response.getWriter());
+			response.getOutputStream().print(
+				Json.object("success", true).toString()
+			);
 		} catch(Exception ex){
 			sess.rollback();
 

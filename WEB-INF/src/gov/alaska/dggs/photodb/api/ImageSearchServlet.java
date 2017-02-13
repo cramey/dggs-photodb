@@ -10,47 +10,30 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.util.zip.GZIPOutputStream;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Date;
 import java.util.Arrays;
 
-import flexjson.JSONSerializer;
-import flexjson.transformer.DateTransformer;
+import mjson.Json;
 
-import org.apache.ibatis.session.SqlSession;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 
-import gov.alaska.dggs.photodb.PhotoDBFactory;
-import gov.alaska.dggs.photodb.model.Image;
 import gov.alaska.dggs.transformer.ExcludeTransformer;
 import gov.alaska.dggs.transformer.IterableTransformer;
 import gov.alaska.dggs.transformer.RawTransformer;
+import gov.alaska.dggs.SolrConnection;
 
 
 public class ImageSearchServlet extends HttpServlet
 {
-	private static JSONSerializer serializer;
-	static {
-		serializer = new JSONSerializer();
-		serializer.include("tags");
-
-		serializer.exclude("modified");
-		serializer.exclude("entered");
-		serializer.exclude("description");
-		serializer.exclude("metadata");
-		serializer.exclude("tags.class");
-		serializer.exclude("class");
-
-		serializer.transform(new DateTransformer("M/d/yyyy"), Date.class);
-		serializer.transform(new ExcludeTransformer(), void.class);
-		serializer.transform(new IterableTransformer(), Iterable.class);
-		serializer.transform(new RawTransformer(), "geoJSON");
-	}
-
   private boolean hideprivate;
 
 
@@ -76,75 +59,106 @@ public class ImageSearchServlet extends HttpServlet
 		response.setHeader("Pragma","no-cache");
 		response.setDateHeader("Expires", 0);
 
-		SqlSession sess = PhotoDBFactory.openSession();
+		Json json = null;
 		try {
-			HashMap map = new HashMap();
+			SolrConnection conn = new SolrConnection(
+				context.getInitParameter("solr_url") + "/select"
+			);
+			// Set default limit to 6
+			conn.setLimit(6);
+
+			conn.setFields(
+				"id, description, credit, title, " +
+				"taken, filename, " +
+				"geojson:[geo f=geog w=GeoJSON]"
+			);
 
 			String search = request.getParameter("search");
 			if(search != null && search.length() > 0){
-				map.put("search", request.getParameter("search"));
-			}
-
-			String aoi = request.getParameter("aoi");
-			if(aoi != null && aoi.length() > 0){
-				map.put("aoi", request.getParameter("aoi"));
+				conn.setQuery(search);
 			}
 
 			String emptydesc = request.getParameter("description");
 			if(emptydesc != null && emptydesc.length() > 0){
-				map.put("description",
-					Boolean.valueOf(request.getParameter("description"))
-				);
+				if(Boolean.valueOf(emptydesc)){
+					conn.setFilter("-description", "[\"\" TO *]");
+				} else {
+					conn.setFilter("description", "[\"\" TO *]");
+				}
 			}
 
 			String emptylocation = request.getParameter("location");
 			if(emptylocation != null && emptylocation.length() > 0){
-				map.put("location",
-					Boolean.valueOf(request.getParameter("location"))
+				if(Boolean.valueOf(emptylocation)){
+					conn.setFilter("-geog", "[\"\" TO *]");
+				} else {
+					conn.setFilter("geog", "[\"\" TO *]");
+				}
+			}
+
+			String aoi = request.getParameter("aoi");
+			if(aoi != null && aoi.length() > 0){
+				conn.setFilter(
+					"{!field f=geog format=GeoJSON}",
+					"Intersects(" + aoi + ")"
 				);
 			}
 
-			Integer limit = 6;
-			try { limit = Integer.valueOf(request.getParameter("show")); }
-			catch(Exception ex){ }
+			String sort = request.getParameter("sort");
+			if(sort != null && sort.length() > 0){
+				conn.setSort(sort);
+			}
 
-			Integer page = 0;
-			try { page = Integer.valueOf(request.getParameter("page")); }
-			catch(Exception ex){ }
+			conn.setFilter("ispublic", String.valueOf(hideprivate));
 
-			map.put("limit", limit);
-			map.put("offset", (limit * page));
-			map.put("hideprivate", hideprivate);
+			conn.setLimit(request.getParameter("show"));
+			conn.setPage(request.getParameter("page"));
 
-			List output = sess.selectList(
-				"gov.alaska.dggs.photodb.Image.getFromID", map
-			);
+			json = conn.execute();
 
-			OutputStreamWriter out = null;
-			GZIPOutputStream gos = null;
-			try { 
-				// If GZIP is supported by the requesting browser, use it.
-				String encoding = request.getHeader("Accept-Encoding");
-				if(encoding != null && encoding.contains("gzip")){
-					response.setHeader("Content-Encoding", "gzip");
-					gos = new GZIPOutputStream(response.getOutputStream(), 8196);
-					out = new OutputStreamWriter(gos, "utf-8");
-				} else {
-					out = new OutputStreamWriter(response.getOutputStream(), "utf-8");
+			DateFormat din = new SimpleDateFormat("yyyy-MM-dd'T'");
+			DateFormat dout = DateFormat.getDateInstance(DateFormat.SHORT);
+
+			if(json.at("docs") != null){
+				for(Json doc : json.at("docs").asJsonList()){
+					// Fix the broken-ass dates so they're less broken ass
+					try { 
+						if(doc.at("taken") != null){
+							String st = doc.at("taken").asString();
+							Date dt = din.parse(st);
+							doc.set("taken", dout.format(dt));
+						}
+					} catch(Exception ex){
+						// Ignore errors from trying to fix the date taken
+					}
 				}
-
-				response.setContentType("application/json");
-				serializer.serialize(output, out);
-			} finally {
-				if(out != null){ out.close(); }
-				if(gos != null){ gos.close(); }
 			}
 		} catch(Exception ex){
-			response.setStatus(500);
-			response.setContentType("text/plain");
-			response.getOutputStream().print(ex.getMessage());
+			json = Json.object(
+				"error", Json.object(
+					"msg", ex.getMessage(), "code", 400
+				)
+			);
+		}
+
+		OutputStreamWriter out = null;
+		GZIPOutputStream gos = null;
+		try { 
+			// If GZIP is supported by the requesting browser, use it.
+			String encoding = request.getHeader("Accept-Encoding");
+			if(encoding != null && encoding.contains("gzip")){
+				response.setHeader("Content-Encoding", "gzip");
+				gos = new GZIPOutputStream(response.getOutputStream(), 8196);
+				out = new OutputStreamWriter(gos, "utf-8");
+			} else {
+				out = new OutputStreamWriter(response.getOutputStream(), "utf-8");
+			}
+
+			response.setContentType("application/json");
+			out.write(json.toString());
 		} finally {
-			sess.close();	
+			if(out != null){ out.close(); }
+			if(gos != null){ gos.close(); }
 		}
 	}
 }

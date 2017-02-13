@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.math.BigDecimal;
 
-import flexjson.JSONSerializer;
+import mjson.Json;
 
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -54,12 +54,6 @@ import gov.alaska.dggs.photodb.PhotoDBFactory;
 public class ImageUploadServlet extends HttpServlet
 {
   private static final int TARGET_WIDTH = 256;
-	private static JSONSerializer serializer;
-	static {
-		serializer = new JSONSerializer();
-		serializer.include("ids");
-		serializer.include("errors");
-	}
 
 	private String SQL =
 		"INSERT INTO image (" +
@@ -280,7 +274,7 @@ public class ImageUploadServlet extends HttpServlet
 							if(description != null) ps.setString(c++, description);
 							else ps.setNull(c++, Types.VARCHAR);
 
-							ps.setString(c++, serializer.serialize(metadata));
+							ps.setString(c++, Json.make(metadata).toString());
 
 							if(lat != null && lon != null){
 								ps.setBigDecimal(c++, new BigDecimal(lon));
@@ -312,12 +306,13 @@ public class ImageUploadServlet extends HttpServlet
 			}
 
 			if(usejson){
-				Map out = new HashMap();
-				if(!errors.isEmpty()) out.put("errors", errors);
-				if(!ids.isEmpty()) out.put("ids", ids);
+				Json json = Json.object();
+
+				if(!errors.isEmpty()) json.set("errors", errors);
+				if(!ids.isEmpty()) json.set("ids", ids);
 
 				response.setContentType("application/json");
-				serializer.serialize(out, response.getWriter());
+				response.getOutputStream().print(json.toString());
 			} else {
 				if(errors.isEmpty()){
 					StringBuilder b = new StringBuilder();

@@ -11,6 +11,13 @@
 	</welcome-file-list>
 
 
+	<context-param>
+		<description>URL to solr instance</description>
+		<param-name>solr_url</param-name>
+		<param-value>http://io.dnr.state.ak.us:8983/solr/photo_dev</param-value>
+	</context-param>
+
+
 	<servlet>
 		<servlet-name>ImageUpload</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.ImageUploadServlet</servlet-class>
