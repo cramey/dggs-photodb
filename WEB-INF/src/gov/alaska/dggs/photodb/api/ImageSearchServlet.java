@@ -26,9 +26,6 @@ import mjson.Json;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
 
-import gov.alaska.dggs.transformer.ExcludeTransformer;
-import gov.alaska.dggs.transformer.IterableTransformer;
-import gov.alaska.dggs.transformer.RawTransformer;
 import gov.alaska.dggs.SolrConnection;
 
 

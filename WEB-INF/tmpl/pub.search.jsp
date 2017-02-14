@@ -65,14 +65,14 @@
 						<div>
 							Showing
 							<select name="search-show" id="search-show">
-								<option value="6" selected>6</option>
+								<option value="" selected>6</option>
 								<option value="12">12</option>
 								<option value="24">24</option>
 								<option value="96">96</option>
 							</select> |
 							Sort by
 							<select name="search-sort" id="search-sort">
-								<option value="score desc">Score</option>
+								<option value="" selected>Score</option>
 								<option value="title desc">Title</option>
 								<option value="taken desc">Taken</option>
 							</select>
@@ -99,6 +99,7 @@
 		<script src="js/leaflet.draw.js"></script>
 		<script src="js/leaflet.mouseposition.js"></script>
 		<script src="js/util.js"></script>
+		<script src="js/search.js"></script>
 		<script src="js/pub.search.js"></script>
 		<script id="tmpl-search" type="x-tmpl-mustache">
 			{{^error}}

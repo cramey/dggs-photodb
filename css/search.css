@@ -1,3 +1,4 @@
+body { overflow-y: scroll; }
 .apptmpl-container { min-width: 450px !important; }
 #map {
 	height: 300px;
