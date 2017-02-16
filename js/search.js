@@ -51,7 +51,7 @@ var Search = {
 					var obj = JSON.parse(xhr.responseText);
 
 					if('success' in src.events){
-						src.events.success(obj);
+						src.events.success(obj, dirty);
 					}
 				} else {
 					if('failure' in src.events){

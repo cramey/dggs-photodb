@@ -49,7 +49,7 @@
 					<div style="margin: 0 0 4px 0">
 						<label for="search-description">Description</label>
 						<select id="search-description" name="search-description">
-							<option value="">Any</option>
+							<option value="" selected>Any</option>
 							<option value="true">Only Empty</option>
 							<option value="false">Only Filled</option>
 						</select>
@@ -58,33 +58,54 @@
 
 						<label for="search-location">Location</label>
 						<select id="search-location" name="search-location">
-							<option value="">Any</option>
+							<option value="" selected>Any</option>
 							<option value="true">Only Empty</option>
 							<option value="false">Only Filled</option>
 						</select>
 					</div>
 
-					<input type="text" id="search-field" name="search-field" placeholder="Search for .. " autocomplete="off">
-					<button id="search-button">Search</button>
+					<div class="search-control-tbl">
+						<div class="search-control-cell" style="width: 100%">
+							<input type="text" id="search-field" name="search-field" placeholder="Search for .. " autocomplete="off">
+						</div>
+						<div class="search-control-cell">
+							<button id="search-button">Search</button>
+						</div>
+					</div>
+
 					<div id="map"></div>
 					<div id="search-results-control">
-						<button id="search-reset">Reset</button> |
-						<button id="search-prev">Previous</button> |
-						Showing: <select name="search-show" id="search-show">
-							<option value="6" selected>6</option>
-							<option value="12">12</option>
-							<option value="24">24</option>
-							<option value="96">96</option>
-						</select>
-						| <button id="search-next">Next</button>
-						<div style="margin: 4px 0 0 0">
+						<div>
+							<button id="search-reset">Reset</button> |
+							<button id="search-prev">Previous</button>
+							<span id="search-stats"></span>
+							<button id="search-next">Next</button>
+						</div>
+
+						<div>
+							Showing
+							<select name="search-show" id="search-show">
+								<option value="" selected>6</option>
+								<option value="12">12</option>
+								<option value="24">24</option>
+								<option value="96">96</option>
+							</select> |
+							Sort by
+							<select name="search-sort" id="search-sort">
+								<option value="" selected>Score</option>
+								<option value="title desc">Title</option>
+								<option value="taken desc">Taken</option>
+							</select> |
 							<button id="selected-all">Select/Unselect All</button>
 						</div>
-						<div id="search-selected-control">
-							<button id="selected-delete">Delete</button> |
-							<button id="selected-edit">Edit</button>
-							<button id="selected-spreadsheet">Spreadsheet</button>
-							<div id="selected-status"></div>
+
+						<div>
+							<span id="search-selected-control">
+								<button id="selected-edit">Edit</button>
+								<button id="selected-spreadsheet">Spreadsheet</button>
+								| <button id="selected-delete">Delete</button>
+								<div id="selected-status"></div>
+							</span>
 						</div>
 					</div>
 				</div>
@@ -107,18 +128,30 @@
 		<script src="../js/leaflet.draw.js"></script>
 		<script src="../js/leaflet.mouseposition.js"></script>
 		<script src="../js/util.js"></script>
+		<script src="../js/search.js"></script>
 		<script src="../js/priv.search.js"></script>
 		<script id="tmpl-search" type="x-tmpl-mustache">
-			{{#.}}
-				<a href="javascript:void(0)" data-image-id="{{id}}" title="{{filename}}" {{#selected}}class="selected"{{/selected}}>
-					<img src="../thumbnail/{{id}}">
-					<div>
-						{{title}}
-						<br>
-						{{credit}} {{taken}}
+			{{^error}}
+				{{#docs}}
+					<a href="javascript:void(0)" data-image-id="{{id}}" title="{{filename}}" {{#selected}}class="selected"{{/selected}}>
+						<img src="../thumbnail/{{id}}" onError="imageError(this)">
+						<div>{{title}}</div>
+						<div>{{credit}} {{taken}}</div>
+					</a>
+				{{/docs}}
+
+				{{^docs}}
+					<div class="no-results">
+						<span>No results found.</span>
 					</div>
-				</a>
-			{{/.}}
+				{{/docs}}
+			{{/error}}
+
+			{{#error}}
+					<div class="err-results">
+						<span>Error: {{msg}}</span>
+					</div>
+			{{/error}}
 		</script>
 	</body>
 </html>

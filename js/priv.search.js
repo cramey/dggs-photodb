@@ -1,8 +1,5 @@
 var map, aoi, features;
-var last = null;
 var selected = [];
-var searchok = true;
-var skiphash = false;
 
 
 function init()
@@ -12,88 +9,7 @@ function init()
 	if(!L.Browser.mobile) L.Browser.touch = false;
 
 	// Disable bfcache (firefox compatibility)
-	if('onunload' in window){
-		window.onunload = function(){};
-	}
-
-	if('onhashchange' in window){
-		window.onhashchange = function(){
-			if(!skiphash){
-				decodeParameters(window.location.hash.substring(1));
-				search(null, true);
-			}
-			skiphash = false;
-		};
-	}
-
-	var search_button = document.getElementById('search-button');
-	if(search_button) search_button.onclick = search;
-
-	var search_prev = document.getElementById('search-prev');
-	if(search_prev) search_prev.onclick = function(){ search(true); };
-
-	var search_next = document.getElementById('search-next');
-	if(search_next) search_next.onclick = function(){ search(false); };
-
-	var search_show = document.getElementById('search-show');
-	if(search_show) search_show.onchange = function(){
-		var page = document.getElementById('search-page');
-		if(page) page.value = '0';
-		search();
-	};
-
-	var search_description = document.getElementById('search-description');
-	if(search_description) search_description.onchange = search;
-
-	var search_location = document.getElementById('search-location');
-	if(search_location) search_location.onchange = search;
-
-	var search_reset = document.getElementById('search-reset');
-	if(search_reset){
-		search_reset.onclick = function(){
-			resetSearch();
-
-			skiphash = true;
-			window.location.hash = '';
-		};
-	}
-
-	var selected_edit = document.getElementById('selected-edit');
-	if(selected_edit){
-		selected_edit.onclick = function(){
-			if(selected.length > 0){
-				window.location.href = 'edit/' + selected.join(',');
-			}
-		};
-	}
-
-	var selected_spreadsheet = document.getElementById('selected-spreadsheet');
-	if(selected_spreadsheet){
-		selected_spreadsheet.onclick = function(){
-			if(selected.length > 0){
-				window.location.href = 'spreadsheet/' + selected.join(',');
-			}
-		};
-	}
-
-	var selected_delete = document.getElementById('selected-delete');
-	if(selected_delete) selected_delete.onclick = deleteSelected;
-
-	var selected_all = document.getElementById('selected-all');
-	if(selected_all) selected_all.onclick = selectToggleAll;
-
-	var q = document.getElementById('search-field');
-	if(q){
-		q.onkeydown = function(evt){
-			var e = evt === undefined ? window.event : evt;	
-			if(e.keyCode === 13){
-				search();
-				if('preventDefault' in e) e.preventDefault();
-				return false;
-			}
-		};
-		q.focus();
-	}
+	if('onunload' in window) window.onunload = function(){};
 
 	aoi = mirroredLayer(null, {
 		color: '#f00',
@@ -104,6 +20,207 @@ function init()
 		clickable: false,
 		'z-index': 20
 	});
+
+	Search.init({
+		'sort': document.getElementById('search-sort'),
+		'page': document.getElementById('search-page'),
+		'show': document.getElementById('search-show'),
+		'search': document.getElementById('search-field'),
+		'description': document.getElementById('search-description'),
+		'location': document.getElementById('search-location'),
+		'aoi': aoi
+	});
+
+	Search.on('success', function(obj, dirty){
+		// Reset selected if the query is dirty
+		if(dirty) updateSelected(true);
+
+		features.clearLayers();
+
+		var results = document.getElementById('search-results');
+		var src = document.getElementById('search-results-control');
+
+		if('docs' in obj && obj['docs'].length > 0){
+			var search_prev = document.getElementById('search-prev');
+			if(search_prev){
+				search_prev.disabled = (obj['start'] === 0);
+			}
+					
+			var search_next = document.getElementById('search-next');
+			if(search_next){
+				search_next.disabled = (
+					(obj['docs'].length + obj['start']) === obj['numFound']
+				);
+			}
+
+			// Show search controls
+			if(src) src.style.display = 'block';
+
+			var stats = document.getElementById('search-stats');
+			if(stats){
+				stats.innerHTML = 'Displaying ' + (obj['start'] + 1) +
+					' to ' + (obj['start'] + obj['docs'].length) +
+					' of ' + obj['numFound'];
+			}
+
+			for(var i = 0; i < obj['docs'].length; i++){
+				var o = obj['docs'][i];
+				if(isSelected(o['id'])) o.selected = true;
+
+				if('geojson' in o){
+					// Clone the geojson object, allowing
+					// the original reference to be freed
+					var geojson = {
+						type: 'Feature',
+						properties: { color: '#9f00ff' },
+						geometry: JSON.parse(JSON.stringify(o['geojson']))
+					};
+					features.addData(geojson);
+				}
+			}
+		} else {
+			if(src) src.style.display = 'none';
+		}
+
+		var tmpl = document.getElementById('tmpl-search');
+		if(results && tmpl){
+			results.innerHTML = Mustache.render(tmpl.innerHTML, obj);
+
+			var lx = results.getElementsByTagName('a');
+			for(var i = 0; i < lx.length; i++){
+				lx[i].onclick = function(){
+					var id = Number(this.getAttribute('data-image-id'));
+					if(this.className !== 'selected'){
+						this.className = 'selected';
+						selectAdd(id);
+					} else {
+						this.className = '';
+						selectDel(id);
+					}
+					updateSelected();
+				};
+			}
+		}
+	});
+
+	Search.on('failure', function(err){
+		features.clearLayers();
+
+		var src = document.getElementById('search-results-control');
+		if(src) src.style.display = 'none';
+
+		var results = document.getElementById('search-results');
+		var tmpl = document.getElementById('tmpl-search');
+		if(results && tmpl){
+			results.innerHTML = Mustache.render(tmpl.innerHTML, {
+				'error': {'msg': 'Cannot connect to search service'}
+			});
+		}
+
+		if(typeof console !== 'undefined'){
+			console.log(err);
+		}
+	});
+
+	Search.on('reset', function(){
+		updateSelected(true);
+
+		var src = document.getElementById('search-results-control');
+		if(src) src.style.display = 'none';
+
+		var results = document.getElementById('search-results');
+		if(results) results.innerHTML = '';
+
+		var sf = document.getElementById('search-field');
+		if(sf) sf.focus();
+	});
+
+	var search_reset = document.getElementById('search-reset');
+	if(search_reset){
+		search_reset.onclick = function(){
+			Search.reset();
+			Search.skipdecode = true;
+			window.location.hash = '';
+		};
+	}
+
+	var search_button = document.getElementById('search-button');
+	if(search_button) search_button.onclick = function(){
+		Search.execute();
+	};
+
+	var search_prev = document.getElementById('search-prev');
+	if(search_prev) search_prev.onclick = function(){
+		Search.prev();
+	};
+
+	var search_next = document.getElementById('search-next');
+	if(search_next) search_next.onclick = function(){
+		Search.next();
+	};
+
+	var search_show = document.getElementById('search-show');
+	if(search_show) search_show.onchange = function(){
+		Search.execute();
+	};
+
+	var search_sort = document.getElementById('search-sort');
+	if(search_sort) search_sort.onchange = function(){
+		Search.execute();
+	};
+
+	var search_description = document.getElementById('search-description');
+	if(search_description) search_description.onchange = function(){
+		Search.execute();	
+	};
+
+	var search_location = document.getElementById('search-location');
+	if(search_location) search_location.onchange = function(){
+		Search.execute();	
+	};
+
+	var selected_edit = document.getElementById('selected-edit');
+	if(selected_edit) selected_edit.onclick = function(){
+		if(selected.length > 0){
+			window.location.href = 'edit/' + selected.join(',');
+		}
+	};
+
+	var selected_spreadsheet = document.getElementById('selected-spreadsheet');
+	if(selected_spreadsheet) selected_spreadsheet.onclick = function(){
+		if(selected.length > 0){
+			window.location.href = 'spreadsheet/' + selected.join(',');
+		}
+	};
+
+	var selected_delete = document.getElementById('selected-delete');
+	if(selected_delete) selected_delete.onclick = deleteSelected;
+
+	var selected_all = document.getElementById('selected-all');
+	if(selected_all) selected_all.onclick = selectToggleAll;
+
+
+
+	var search_field = document.getElementById('search-field');
+	if(search_field){
+		search_field.onkeydown = function(evt){
+			var e = evt === undefined ? window.event : evt;	
+			if(e.keyCode === 13){
+				Search.execute()
+				if('preventDefault' in e) e.preventDefault();
+				return false;
+			}
+		};
+		search_field.focus();
+	}
+
+	if('onhashchange' in window){
+		window.onhashchange = function(){
+			Search.decode(
+				window.location.hash.substring(1)
+			);
+		};
+	}
 
 	features = mirroredLayer(null, function(f){
 		return {
@@ -195,249 +312,13 @@ function init()
 	
 	// Search when drawing ends
 	map.on('draw:drawstop', function(e){
-		search();
+		Search.execute();
 	});
 
 	if(window.location.hash.length > 1){
-		decodeParameters(window.location.hash.substring(1));
-		search(null, true);
-	}
-}
-
-
-function search(back, noupdate)
-{
-	if(!searchok) return;
-	searchok = false;
-
-	var query = '';
-
-	// Add the number of shown records (if it's not 6, the default)
-	var show = document.getElementById('search-show');
-	var sh = show ? Number(show.options[show.selectedIndex].value) : 6;
-	if(sh !== 6) query += 'show=' + sh;
-	
-	// Add in the textual query (if there is one)
-	var q = document.getElementById('search-field');
-	if(q && q.value.length > 0){
-		if(query.length > 0) query += '&';
-		query += 'search=' + encodeURIComponent(q.value);
-	}
-
-	// Add in description filter
-	var desc = document.getElementById('search-description');
-	var de = desc.options[desc.selectedIndex].value;
-	if(de.length > 0){
-		if(query.length > 0) query += '&';
-		query += 'description=' + encodeURIComponent(de);
-	}
-
-	// Add in location filter
-	var loc = document.getElementById('search-location');
-	var lo = loc.options[loc.selectedIndex].value;
-	if(lo.length > 0){
-		if(query.length > 0) query += '&';
-		query += 'location=' + encodeURIComponent(lo);
-	}
-
-	// Add in the spatial query (if there is one)
-	if(aoi.getLayers().length > 0){
-		if(query.length > 0) query += '&';
-		var geojson = JSON.stringify(
-			aoi.getLayers()[0].toGeoJSON().geometry
+		Search.decode(
+			window.location.hash.substring(1)
 		);
-
-		// Prune geojson to 4 significant digits
-		geojson = geojson.replace(/\d+\.\d+/g, function(match){
-			return Number(match).toFixed(4);
-		});
-
-		query += 'aoi=' + encodeURIComponent(geojson);
-	}
-
-	// Don't run empty queries
-	if(query.length === 0){
-		skiphash = true;
-		window.location.hash = '';
-		var results = document.getElementById('search-results');
-		var src = document.getElementById('search-results-control');
-		if(src) src.style.display = 'none';
-		if(results) results.innerHTML = '';
-		features.clearLayers();
-		searchok = true;
-		return;
-	}
-
-	// This query is dirty if it's different from the previous
-	// query (not counting the page we're on)
-	var dirty = query !== last ? true : false;
-
-	var page = document.getElementById('search-page');
-	var pg = dirty ? 0 : page.value;
-
-	if(!dirty && typeof back === 'boolean'){
-		pg = Math.max(0, Number(page.value) + (back ? -1 : 1));
-	}
-
-	// Reset selected if the query is dirty
-	if(dirty) updateSelected(true);
-
-	var params = query + '&page=' + pg;
-		
-	var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());
-	xhr.onreadystatechange = function(){
-		if(xhr.readyState === 4){
-			if(xhr.status === 200){
-				var obj = JSON.parse(xhr.responseText);
-				var results = document.getElementById('search-results');
-
-				// If there are results, or the query is "dirty"
-				// commit the query and the current page and update
-				// the current query hash
-				if(obj.length > 0 || dirty){
-					page.value = pg;
-					last = query;
-					if(noupdate !== true){
-						skiphash = true;
-						window.location.hash = params;
-					}
-				}
-
-				var src = document.getElementById('search-results-control');
-				if(obj.length < 1){
-					searchok = true;
-
-					// If there's no results, and the query
-					// isn't dirty, stop right here
-					if(!dirty) return;
-
-					// On the other hand, if the query is dirty
-					// and there are no results, go ahead
-					// and hide all the search controls
-					if(src) src.style.display = 'none';
-					if(results){
-						results.innerHTML = '<div class="noresults">' +
-							'<span>No results found.</span>' +
-							'</div>';
-					}
-
-					return;
-				}
-
-				if(src) src.style.display = 'block';
-
-				features.clearLayers();
-				for(var i = 0; i < obj.length; i++){
-					var o = obj[i];
-					if(isSelected(o['ID'])) obj[i].selected = true;
-
-					if('geoJSON' in o){
-						// Clone the geojson object, allowing
-						// the original reference to be freed
-						var geojson = {
-							type: 'Feature',
-							properties: { color: '#9f00ff' },
-							geometry: JSON.parse(JSON.stringify(o['geoJSON']))
-						};
-						features.addData(geojson);
-					}
-				}
-
-				var tmpl = document.getElementById('tmpl-search');
-				if(results && tmpl){
-					results.innerHTML = Mustache.render(
-						document.getElementById('tmpl-search').innerHTML,
-						obj
-					);
-
-					var lx = results.getElementsByTagName('a');
-					for(var i = 0; i < lx.length; i++){
-						lx[i].onclick = function(){
-							var id = Number(this.getAttribute('data-image-id'));
-							if(this.className !== 'selected'){
-								this.className = 'selected';
-								selectAdd(id);
-							} else {
-								this.className = '';
-								selectDel(id);
-							}
-							updateSelected();
-						};
-					}
-				}
-			}
-			searchok = true;
-		}
-	};
-	xhr.open('POST', 'search.json', true);
-	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-	xhr.send(params);
-}
-
-
-function decodeParameters(params)
-{
-	resetSearch();
-
-	if(params.length < 1) return;
-
-	var kvs = params.split('&');
-	for(var i = 0; i < kvs.length; i++){
-		var idx = kvs[i].indexOf('=');
-		var k = kvs[i].substring(0, idx);
-		var v = decodeURIComponent(kvs[i].substring(idx + 1));
-
-		switch(k){
-			case 'aoi':
-				aoi.addData(JSON.parse(v));
-			break;
-
-			case 'page':
-				var page = document.getElementById('search-page');
-				if(page) page.value = v;
-			break;
-
-			case 'search':
-				var q = document.getElementById('search-field');
-				if(q) q.value = v;
-			break;
-
-			case 'show':
-				var show = document.getElementById('search-show');
-				if(show){
-					for(var j = 0; j < show.options.length; j++){
-						if(show.options[j].value === v){
-							show.options[j].selected = true;
-							break;
-						}
-					}
-				}
-			break;
-
-			case 'location':
-				var loc = document.getElementById('search-location');
-				if(loc){
-					for(var j = 0; j < loc.options.length; j++){
-						if(loc.options[j].value === v){
-							loc.options[j].selected = true;
-							break;
-						}
-					}
-				}
-			break;
-
-			case 'description':
-				var desc = document.getElementById('search-description');
-				if(desc){
-					for(var j = 0; j < desc.options.length; j++){
-						if(desc.options[j].value === v){
-							desc.options[j].selected = true;
-							break;
-						}
-					}
-				}
-			break;
-		}
 	}
 }
 
@@ -519,7 +400,7 @@ function updateSelected(empty)
 	if(selected.length < 1){
 		if(sel) sel.style.display = 'none';
 	} else {
-		if(sel) sel.style.display = 'block';
+		if(sel) sel.style.display = 'inline';
 		var stat = document.getElementById('selected-status');
 		if(stat) stat.innerHTML = selected.length + ' images selected';
 	}
@@ -542,7 +423,7 @@ function deleteSelected()
 					selected = [];
 					var page = document.getElementById('search-page');
 					if(page) page.value = '0';
-					search();
+					Search.execute();
 					return;
 				}
 			}
@@ -558,7 +439,6 @@ function deleteSelected()
 function resetSearch()
 {
 	last = null;
-	updateSelected(true);
 
 	aoi.clearLayers();
 	features.clearLayers();
@@ -607,4 +487,23 @@ function resetSearch()
 
 	var results = document.getElementById('search-results');
 	if(results) results.innerHTML = '';
+}
+
+
+function imageError(el)
+{
+	el.onerror = null;
+	el.src = '';
+
+	var a = document.createElement('a');
+	a.href = 'javascript:void(0)';
+	var img = document.createElement('img');
+	img.src = '../css/notfound.gif';
+	img.style.width = '256px';
+	img.style.height = '167px';
+	a.appendChild(img);
+
+	el.parentNode.parentNode.replaceChild(a, el.parentNode);
+
+	return false;
 }

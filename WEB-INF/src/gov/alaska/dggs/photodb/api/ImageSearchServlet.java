@@ -106,7 +106,7 @@ public class ImageSearchServlet extends HttpServlet
 				conn.setSort(sort);
 			}
 
-			conn.setFilter("ispublic", String.valueOf(hideprivate));
+			if(hideprivate) conn.setFilter("ispublic", "true");
 
 			conn.setLimit(request.getParameter("show"));
 			conn.setPage(request.getParameter("page"));
