@@ -105,7 +105,7 @@
 			{{^error}}
 				{{#docs}}
 					<a href="detail/{{id}}" title="{{filename}}">
-						<img src="thumbnail/{{id}}">
+						<img src="thumbnail/{{id}}" onError="imageError(this)">
 						<div>{{title}}</div>
 						<div>{{credit}} {{taken}}</div>
 					</a>

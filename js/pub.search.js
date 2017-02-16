@@ -263,3 +263,22 @@ function init()
 		);
 	}
 }
+
+
+function imageError(el)
+{
+	el.onerror = null;
+	el.src = '';
+
+	var a = document.createElement('a');
+	a.href = 'javascript:void(0)';
+	var img = document.createElement('img');
+	img.src = 'css/notfound.gif';
+	img.style.width = '256px';
+	img.style.height = '167px';
+	a.appendChild(img);
+
+	el.parentNode.parentNode.replaceChild(a, el.parentNode);
+
+	return false;
+}
