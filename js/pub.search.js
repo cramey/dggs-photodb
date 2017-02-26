@@ -99,6 +99,8 @@ function init()
 	});
 
 	Search.on('reset', function(){
+		features.clearLayers();
+
 		var src = document.getElementById('search-results-control');
 		if(src) src.style.display = 'none';
 

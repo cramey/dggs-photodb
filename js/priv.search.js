@@ -123,6 +123,8 @@ function init()
 	});
 
 	Search.on('reset', function(){
+		features.clearLayers();
+
 		updateSelected(true);
 
 		var src = document.getElementById('search-results-control');
