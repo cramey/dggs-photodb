@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gov.alaska.dggs.photodb.Schema">
+	<update id="createTableTag">
+		<if test="_databaseId == 'postgres'">
+			CREATE TABLE IF NOT EXISTS tag (
+				tag_id SERIAL PRIMARY KEY,
+				name VARCHAR(50)
+			)
+		</if>
+	</update>
+
+
+	<update id="createTableImage">
+		<if test="_databaseId == 'postgres'">
+			CREATE TABLE IF NOT EXISTS image (
+				image_id SERIAL PRIMARY KEY,
+				image BYTEA NOT NULL,
+				image_md5 VARCHAR(32) UNIQUE NOT NULL,
+				thumbnail BYTEA NULL,
+				filename TEXT NOT NULL,
+				taken DATE NULL,
+				entered TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+				modified TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+				credit TEXT NULL,
+				summary VARCHAR(100) NULL,
+				description TEXT NULL,
+				metadata JSONB NULL,
+				search TSVECTOR NOT NULL,
+				geog GEOGRAPHY(Point) NULL,
+				geog_accuracy SMALLINT NOT NULL DEFAULT 1,
+				ispublic BOOLEAN NOT NULL DEFAULT false
+			) WITH (FILLFACTOR=70)
+		</if>
+	</update>
+
+
+	<update id="createTableImageTag">
+		<if test="_databaseId == 'postgres'">
+			CREATE TABLE IF NOT EXISTS image_tag (
+				tag_id INT REFERENCES tag(tag_id) NOT NULL,
+				image_id INT REFERENCES image(image_id) NOT NULL,
+				PRIMARY KEY(tag_id, image_id)
+			)
+		</if>
+	</update>
+
+
+	<update id="createFunctionImageMD5">
+		<if test="_databaseId == 'postgres'">
+			CREATE OR REPLACE FUNCTION image_md5_fn() 
+			RETURNS TRIGGER AS $$ 
+			BEGIN 
+				IF NEW.image IS NOT NULL AND NEW.image_md5 IS NULL THEN 
+					NEW.image_md5 = md5(NEW.image); 
+				END IF; 
+			RETURN NEW; 
+			END; $$ LANGUAGE 'plpgsql'
+		</if>
+	</update>
+
+
+	<update id="createTriggerImageMD5">
+		<if test="_databaseId == 'postgres'">
+			CREATE TRIGGER image_md5_tr
+			BEFORE INSERT OR UPDATE ON image
+			FOR EACH ROW EXECUTE PROCEDURE image_md5_fn()
+		</if>
+	</update>
+
+
+	<update id="createFunctionImageMod">
+		<if test="_databaseId == 'postgres'">
+			CREATE FUNCTION image_modified_fn()
+			RETURNS TRIGGER AS $$
+			BEGIN
+				NEW.modified = NOW();
+				RETURN NEW;
+			END; $$ LANGUAGE 'plpgsql'
+		</if>
+	</update>
+
+
+	<update id="createTriggerImageMod">
+		<if test="_databaseId == 'postgres'">
+			CREATE TRIGGER image_modified_tr
+			BEFORE INSERT OR UPDATE ON image
+			FOR EACH ROW EXECUTE PROCEDURE image_modified_fn()
+		</if>
+	</update>
+
+
+	<update id="createIndexImageMD5">
+		<if test="_databaseId == 'postgres'">
+			CREATE INDEX image_image_md5_idx ON image(image_md5)
+		</if>
+	</update>
+
+
+	<update id="createIndexImageTaken">
+		<if test="_databaseId == 'postgres'">
+			CREATE INDEX image_taken_idx ON image(taken)
+		</if>
+	</update>
+
+
+	<update id="createIndexImageGeog">
+		<if test="_databaseId == 'postgres'">
+			CREATE INDEX image_geog_idx ON image USING GIST(geog)
+		</if>
+	</update>
+
+
+	<!--
+		Finds and returns the commonality between various images 
+		That is, if two images share the same credit, this will
+		return that credit otherwise it returns null for the credit.
+	-->
+	<update id="createFunctionImagesCommon">
+		<if test="_databaseId == 'postgres'">
+			CREATE FUNCTION public.images_common(
+				ids INT[]
+			) RETURNS TABLE(
+				credit TEXT[], 
+				taken DATE[], 
+				summary VARCHAR[], 
+				description TEXT[], 
+				geojson TEXT[], 
+				accuracy SMALLINT[], 
+				tags TEXT[], 
+				ispublic BOOLEAN[]
+			) AS $$ 
+				DECLARE 
+					arr_credit TEXT[]; 
+					arr_taken DATE[]; 
+					arr_summary VARCHAR[]; 
+					arr_description TEXT[]; 
+					arr_geojson VARCHAR[]; 
+					arr_accuracy SMALLINT[]; 
+					arr_tags VARCHAR[]; 
+					arr_ispublic BOOLEAN[]; 
+				BEGIN 
+					SELECT ARRAY_AGG(q.credit) INTO arr_credit 
+					FROM (
+						SELECT DISTINCT i.credit 
+						FROM image AS i 
+						WHERE i.image_id = ANY(ids) 
+						LIMIT 2
+					) AS q; 
+
+					SELECT ARRAY_AGG(q.taken) INTO arr_taken 
+					FROM (
+						SELECT DISTINCT i.taken 
+						FROM image AS i 
+						WHERE i.image_id = ANY(ids) 
+						LIMIT 2
+					) AS q; 
+
+					SELECT ARRAY_AGG(q.summary) INTO arr_summary 
+					FROM (
+						SELECT DISTINCT i.summary 
+						FROM image AS i 
+						WHERE i.image_id = ANY(ids) 
+						LIMIT 2
+					) AS q; 
+
+					SELECT ARRAY_AGG(q.description) INTO arr_description 
+					FROM (
+						SELECT DISTINCT i.description 
+						FROM image AS i 
+						WHERE i.image_id = ANY(ids) 
+						LIMIT 2
+					) AS q; 
+
+					SELECT ARRAY_AGG(q.geojson) INTO arr_geojson 
+					FROM (
+						SELECT DISTINCT 
+							ST_AsGeoJSON(i.geog::GEOMETRY) AS geojson 
+						FROM image AS i 
+						WHERE i.image_id = ANY(ids) 
+						LIMIT 2
+					) AS q; 
+
+					SELECT ARRAY_AGG(q.geog_accuracy) INTO arr_accuracy 
+					FROM (
+						SELECT DISTINCT i.geog_accuracy 
+						FROM image AS i 
+						WHERE i.image_id = ANY(ids) 
+						LIMIT 2
+					) AS q; 
+
+					SELECT ARRAY_AGG(q.names) INTO arr_tags 
+					FROM (
+						SELECT DISTINCT names 
+						FROM (
+							SELECT i.image_id, 
+								STRING_AGG(t.name, ', ') AS names 
+							FROM image AS i 
+							LEFT OUTER JOIN image_tag AS it 
+								ON it.image_id = i.image_id 
+							LEFT OUTER JOIN tag AS t 
+								ON t.tag_id = it.tag_id 
+							WHERE i.image_id = ANY(ids) 
+							GROUP BY i.image_id
+						) AS q 
+						LIMIT 2
+					) AS q; 
+
+					SELECT ARRAY_AGG(q.ispublic) INTO arr_ispublic 
+					FROM (
+						SELECT DISTINCT i.ispublic 
+						FROM image AS i 
+						WHERE i.image_id = ANY(ids) 
+						LIMIT 2
+					) AS q; 
+
+					RETURN QUERY SELECT 
+						CASE WHEN ARRAY_LENGTH(arr_credit, 1) = 1 
+							THEN ARRAY[arr_credit[1]] 
+							ELSE ARRAY[]::TEXT[] 
+						END AS credit, 
+
+						CASE WHEN ARRAY_LENGTH(arr_taken, 1) = 1 
+							THEN ARRAY[arr_taken[1]] 
+							ELSE ARRAY[]::DATE[] 
+						END AS taken, 
+
+						CASE WHEN ARRAY_LENGTH(arr_summary, 1) = 1 
+							THEN ARRAY[arr_summary[1]] 
+							ELSE ARRAY[]::VARCHAR[] 
+						END AS summary, 
+
+						CASE WHEN ARRAY_LENGTH(arr_description, 1) = 1 
+							THEN ARRAY[arr_description[1]] 
+							ELSE ARRAY[]::TEXT[] 
+						END AS description, 
+
+						CASE WHEN ARRAY_LENGTH(arr_geojson, 1) = 1 
+							THEN ARRAY[arr_geojson[1]] 
+							ELSE ARRAY[]::TEXT[] 
+						END AS geojson, 
+
+						CASE WHEN ARRAY_LENGTH(arr_accuracy, 1) = 1 
+							THEN ARRAY[arr_accuracy[1]] 
+							ELSE ARRAY[]::SMALLINT[] 
+						END AS accuracy, 
+
+						CASE WHEN ARRAY_LENGTH(arr_tags, 1) = 1 
+							THEN ARRAY[arr_tags[1]] 
+							ELSE ARRAY[]::TEXT[] 
+						END AS tags, 
+
+						CASE WHEN ARRAY_LENGTH(arr_ispublic, 1) = 1 
+							THEN ARRAY[arr_ispublic[1]] 
+							ELSE ARRAY[]::BOOLEAN[] 
+						END AS accuracy 
+					; 
+				END;  
+			$$ LANGUAGE plpgsql;
+		</if>
+	</update>
+</mapper>

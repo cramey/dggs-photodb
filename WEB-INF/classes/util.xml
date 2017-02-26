@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gov.alaska.dggs.Util">
+	<select id="isIndex" resultSetType="FORWARD_ONLY" parameterType="String" resultType="Boolean">
+		<if test="_databaseId == 'postgres'">
+			SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END
+			FROM pg_indexes WHERE indexname = #{index}
+		</if>
+	</select>
+
+
+	<select id="isTable" resultSetType="FORWARD_ONLY" parameterType="String" resultType="Boolean">
+		<if test="_databaseId == 'postgres'">
+			SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END
+			FROM pg_tables WHERE tablename = #{table}
+		</if>
+	</select>
+
+
+	<select id="isFunction" resultSetType="FORWARD_ONLY" parameterType="String" resultType="Boolean">
+		<if test="_databaseId == 'postgres'">
+			SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END
+			FROM pg_proc WHERE proname = #{func}
+		</if>
+	</select>
+
+
+	<select id="isTrigger" resultSetType="FORWARD_ONLY" parameterType="String" resultType="Boolean">
+		<if test="_databaseId == 'postgres'">
+			SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END
+			FROM pg_trigger WHERE tgname = #{trigger}
+		</if>
+	</select>
+</mapper>

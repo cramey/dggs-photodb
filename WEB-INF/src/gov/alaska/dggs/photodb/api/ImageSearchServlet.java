@@ -26,7 +26,7 @@ import mjson.Json;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
 
-import gov.alaska.dggs.SolrConnection;
+import gov.alaska.dggs.solr.SolrQuery;
 
 
 public class ImageSearchServlet extends HttpServlet
@@ -58,13 +58,14 @@ public class ImageSearchServlet extends HttpServlet
 
 		Json json = null;
 		try {
-			SolrConnection conn = new SolrConnection(
-				context.getInitParameter("solr_url") + "/select"
+			SolrQuery query = new SolrQuery(
+				context.getInitParameter("solr_url")
 			);
-			// Set default limit to 6
-			conn.setLimit(6);
 
-			conn.setFields(
+			// Set default limit to 6
+			query.setLimit(6);
+
+			query.setFields(
 				"id, description, credit, title, " +
 				"taken, filename, " +
 				"geojson:[geo f=geog w=GeoJSON]"
@@ -72,30 +73,30 @@ public class ImageSearchServlet extends HttpServlet
 
 			String search = request.getParameter("search");
 			if(search != null && search.length() > 0){
-				conn.setQuery(search);
+				query.setQuery(search);
 			}
 
 			String emptydesc = request.getParameter("description");
 			if(emptydesc != null && emptydesc.length() > 0){
 				if(Boolean.valueOf(emptydesc)){
-					conn.setFilter("-description", "[\"\" TO *]");
+					query.setFilter("-description", "[\"\" TO *]");
 				} else {
-					conn.setFilter("description", "[\"\" TO *]");
+					query.setFilter("description", "[\"\" TO *]");
 				}
 			}
 
 			String emptylocation = request.getParameter("location");
 			if(emptylocation != null && emptylocation.length() > 0){
 				if(Boolean.valueOf(emptylocation)){
-					conn.setFilter("-geog", "[\"\" TO *]");
+					query.setFilter("-geog", "[\"\" TO *]");
 				} else {
-					conn.setFilter("geog", "[\"\" TO *]");
+					query.setFilter("geog", "[\"\" TO *]");
 				}
 			}
 
 			String aoi = request.getParameter("aoi");
 			if(aoi != null && aoi.length() > 0){
-				conn.setFilter(
+				query.setFilter(
 					"{!field f=geog format=GeoJSON}",
 					"Intersects(" + aoi + ")"
 				);
@@ -103,15 +104,15 @@ public class ImageSearchServlet extends HttpServlet
 
 			String sort = request.getParameter("sort");
 			if(sort != null && sort.length() > 0){
-				conn.setSort(sort);
+				query.setSort(sort);
 			}
 
-			if(hideprivate) conn.setFilter("ispublic", "true");
+			if(hideprivate) query.setFilter("ispublic", "true");
 
-			conn.setLimit(request.getParameter("show"));
-			conn.setPage(request.getParameter("page"));
+			query.setLimit(request.getParameter("show"));
+			query.setPage(request.getParameter("page"));
 
-			json = conn.execute();
+			json = query.execute();
 
 			DateFormat din = new SimpleDateFormat("yyyy-MM-dd'T'");
 			DateFormat dout = DateFormat.getDateInstance(DateFormat.SHORT);

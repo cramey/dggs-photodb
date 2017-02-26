@@ -9,7 +9,7 @@
 			COALESCE(metadata->>'import-path', i.filename) AS filename,
 			i.taken, i.modified, i.entered,
 			i.summary, i.description, i.credit,
-			ST_AsGeoJSON(i.geog::GEOMETRY) AS geojson,
+			ST_AsGeoJSON(i.geog::GEOMETRY, 5, 0) AS geojson,
 			geog_accuracy, ispublic,
 			i.metadata::text
 	</sql>
@@ -25,43 +25,6 @@
 		<include refid="getBy" />
 		FROM image AS i
 		WHERE i.image_id = #{id}
-	</select>
-
-
-	<select id="getFromID" resultSetType="FORWARD_ONLY" parameterType="Map" resultMap="ImageMap">
-		<include refid="getBy" />
-		FROM image AS i
-		WHERE 1=1
-		<choose>
-			<when test="description == true">
-				AND i.description IS NULL
-			</when>
-			<when test="description == false">
-				AND i.description IS NOT NULL
-			</when>
-		</choose>
-		<choose>
-			<when test="location == true">
-				AND i.geog IS NULL
-			</when>
-			<when test="location == false">
-				AND i.geog IS NOT NULL
-			</when>
-		</choose>
-		<if test="search != null">
-			AND search @@ plainto_tsquery('simple', #{search})
-		</if>
-		<if test="aoi != null">
-			AND ST_intersects(
-				i.geog, ST_SetSRID(ST_GeomFromGeoJSON(#{aoi}), 4326)
-			)
-		</if>
-		<if test="hideprivate == true">
-			AND ispublic
-		</if>
-		ORDER BY i.image_id ASC
-		OFFSET ${offset}
-		LIMIT ${limit}
 	</select>
 
 

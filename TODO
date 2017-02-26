@@ -1,0 +1,3 @@
+Fix editing of the location on the edit page: Locations may be updated, but
+cannot be removed. It should be possible to remove, update or ignore (like all
+the other fields)

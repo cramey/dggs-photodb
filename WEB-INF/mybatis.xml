@@ -18,8 +18,14 @@
 		</environment>
 	</environments>
 
+	<databaseIdProvider type="DB_VENDOR">
+		<property name="PostgreSQL" value="postgres" />
+	</databaseIdProvider>
+
 	<mappers>
 		<mapper resource="tag.xml" />
 		<mapper resource="image.xml" />
+		<mapper resource="util.xml" />
+		<mapper resource="schema.xml" />
 	</mappers>
 </configuration>

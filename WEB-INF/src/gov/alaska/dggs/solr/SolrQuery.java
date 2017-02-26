@@ -1,7 +1,4 @@
-package gov.alaska.dggs;
-
-import java.io.InputStream;
-import java.io.OutputStream;
+package gov.alaska.dggs.solr;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -9,65 +6,46 @@ import java.util.Map;
 import java.util.HashMap;
 
 import mjson.Json;
-
-import java.net.URL;
-import java.net.HttpURLConnection;
 import java.net.URLEncoder;
-import java.net.MalformedURLException;
 
 
-public class SolrConnection
+public class SolrQuery
 {
+	private SolrConnection conn;
 	private Map<String,List<String>> filters;
-	private URL url;
-	private String query, fields, sort;
+	private String query, fields, sort, operator;
 	private Integer limit, page;
-	private Integer connect_timeout, read_timeout;
 
 
-	public SolrConnection(String url) throws MalformedURLException
+	public SolrQuery(String url)
 	{
-		this(new URL(url));
+		this(new SolrConnection(url + "/select"));
 	}
-
-	public SolrConnection(URL url)
+	public SolrQuery(SolrConnection conn)
 	{
-		this.url = url;
+		this.conn = conn;
 		filters = new HashMap<String,List<String>>();
 
 		// Set some sane defaults
 		page = 0;
 		limit = 10;
-		connect_timeout = 1000;
-		read_timeout = 500;
 		query = "*:*";
 		fields = null;
 		sort = null;
+		operator = "AND";
 	}
 
 
 	public String getQuery(){ return query; }
 	public void setQuery(String query){ this.query = query; }
 
+
 	public String getSort(){ return sort; }
 	public void setSort(String sort){ this.sort = sort; }
 
+
 	public String getFields(){ return fields; }
 	public void setFields(String fields){ this.fields = fields; }
-
-
-	public Integer getConnectTimeout(){ return connect_timeout; }
-	public void setConnectTimeout(Integer connect_timeout)
-	{
-		this.connect_timeout = connect_timeout;
-	}
-
-
-	public Integer getReadTimeout(){ return read_timeout; }
-	public void setReadTimeout(Integer read_timeout)
-	{
-		this.read_timeout = read_timeout;
-	}
 
 
 	public Integer getLimit(){ return limit; }
@@ -92,6 +70,10 @@ public class SolrConnection
 		try { setPage(Integer.valueOf(page)); }
 		catch(Exception ex){ }
 	}
+
+
+	public String getOperator(){ return operator; }
+	public void setOperator(String operator){ this.operator = operator; }
 
 
 	public void setFilter(String key, String value)
@@ -137,16 +119,7 @@ public class SolrConnection
 
 	public Json execute()
 	{
-		HttpURLConnection conn = null;
 		try {
-			conn = (HttpURLConnection)url.openConnection();
-			conn.setReadTimeout(read_timeout);
-			conn.setConnectTimeout(connect_timeout);
-			conn.setRequestMethod("POST");
-			conn.setUseCaches(false);
-			conn.setDoInput(true);
-			conn.setDoOutput(true);
-
 			StringBuilder params = new StringBuilder();
 
 			if(query != null){
@@ -199,6 +172,13 @@ public class SolrConnection
 				params.append(URLEncoder.encode(sort, "UTF-8"));
 			}
 
+			// Add default operator (if it exists)
+			if(operator != null){
+				if(params.length() > 0) params.append("&");
+				params.append("q.op=");
+				params.append(URLEncoder.encode(operator, "UTF-8"));
+			}
+
 			// Add limit and page
 			if(params.length() > 0) params.append("&");
 			params.append("start=");
@@ -209,38 +189,29 @@ public class SolrConnection
 			// Return json format
 			params.append("&wt=json");
 
-			try (OutputStream os = conn.getOutputStream()){
-				os.write(params.toString().getBytes("UTF-8"));
-				os.flush();
-			}
-
-			StringBuilder result = new StringBuilder();
-			try (InputStream is = (
-				conn.getResponseCode() == HttpURLConnection.HTTP_OK ?
-				conn.getInputStream() : conn.getErrorStream()
-			)){
-				byte[] buf = new byte[4096];
-				for(int c; (c = is.read(buf, 0, buf.length)) != -1; result.append(new String(buf, 0, c)));
-			}
-
-			Json json = Json.read(result.toString());
+			String r = conn.execute(params.toString());
+			Json json = Json.read(r);
 
 			if(json.at("response") != null){
 				json = json.at("response");
 			} else if(json.at("error") != null){
 				json = json.at("error");
-				json.atDel("metadata");
+				if(json.at("metadata") != null){
+					json.atDel("metadata");
+				}
+				if(json.at("msg") == null){
+					json.set("msg", "Unknown search error");
+				}
 				json = Json.object("error", json);
 			}
 
 			return json;
 		} catch(Exception ex){
+			ex.printStackTrace();
 			return Json.object("error", Json.object(
 				"msg", ex.getMessage(),
 				"code", 400
 			));
-		} finally {
-			if(conn != null) conn.disconnect();
 		}
 	}
 }
