@@ -2,8 +2,7 @@ var map, features;
 
 function init()
 {
-	// Fix for Leaflet Issue #5180
-	// See: https://github.com/Leaflet/Leaflet/issues/5180
+	// Disable touch on non-mobile devices
 	if(!L.Browser.mobile) L.Browser.touch = false;
 
 	// Disable bfcache (firefox compatibility)
@@ -57,24 +56,6 @@ function init()
 	}
 
 	features = L.geoJson();
-	features.on('layeradd', function(e){
-		updateLonLat(e.layer);
-
-		if(!('dragging' in e.layer)){
-			e.layer.options.draggable = true;
-			e.layer.options.keyboard = false;
-		}
-
-		e.layer.on('dblclick', function(e){
-			features.removeLayer(this);
-		});
-		e.layer.on('dragend', function(e){
-			updateLonLat(this);
-		});
-	});
-	features.on('layerremove', function(e){
-		updateLonLat();
-	});
 	if(geojson) features.addData(geojson);
 
 	map = L.map('map', {
@@ -110,13 +91,39 @@ function init()
 		}
 	));
 
-	map.on('click', function(e){
-		if(features.getLayers().length < 1){
-			features.addLayer(L.marker(e.latlng, {
-				draggable: true, keyboard: false
-			}));
-		}
-	});
+  // Add draw control
+  map.addControl(
+    new L.Control.Draw({
+      position: 'topright',
+      draw: {
+        polygon: false, polyline: false,
+        circle: false,
+        rectangle: {
+          showArea: false,
+          shapeOptions: {
+            color: '#f00',
+            opacity: 1,
+            weight: 2,
+            radius: 6,
+            fill: false,
+            interactive: false
+          }
+        }
+      },
+      edit: {
+        featureGroup: features,
+        edit: false,
+        remove: false
+      }
+    })
+  );
+
+  map.on('draw:drawstart', function(e){
+    features.clearLayers();
+  });
+  map.on('draw:created', function(e){
+    features.addLayer(e.layer);
+  });
 
 	var taken = document.getElementById('taken');
 	if(taken && !taken.disabled) taken.focus();
@@ -243,4 +250,3 @@ function updateLonLat(layer)
 		el.innerHTML = 'Not applicable';
 	}
 }
-

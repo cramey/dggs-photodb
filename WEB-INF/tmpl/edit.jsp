@@ -14,6 +14,7 @@
 		<title>Alaska Division of Geological &amp; Geophysical Surveys Photos</title>
 		<link rel="stylesheet" href="../../css/apptmpl.min.css">
 		<link rel="stylesheet" href="../../js/leaflet.css">
+		<link rel="stylesheet" href="../../js/leaflet.draw.css">
 		<link rel="stylesheet" href="../../js/leaflet.mouseposition.css">
 		<link rel="stylesheet" href="../../css/edit.css">
 		<style>
@@ -21,6 +22,8 @@
 		</style>
 		<script>var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};</script>
 		<script src="../../js/leaflet.js"></script>
+		<script src="../../js/leaflet.draw.js"></script>
+		<script src="../../js/leaflet.draw.js"></script>
 		<script src="../../js/leaflet.mouseposition.js"></script>
 		<script src="../../js/util.js"></script>
 		<script src="../../js/edit.js"></script>
@@ -53,7 +56,6 @@
 				<input type="hidden" name="ids" id="ids" value="<c:out value="${ids_str}"/>">
 				<div id="map-container">
 					<div id="map"></div>
-					Click to add location, click and drag to move, or double click to remove
 				</div>
 
 				<c:if test="${!empty common.taken}">

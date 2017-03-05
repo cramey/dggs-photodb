@@ -29,6 +29,7 @@
 #map {
 	height: 400px;
 	width: 400px;
+	text-align: left;
 }
 #tags, #description, #summary, #credit { width: 100%; }
 #button-delete, #button-spreadsheet, #button-edit { margin: 0 32px 0 0; }

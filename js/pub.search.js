@@ -2,8 +2,7 @@ var map, aoi, features;
 
 function init()
 {
-	// Fix for Leaflet Issue #5180
-	// See: https://github.com/Leaflet/Leaflet/issues/5180
+	// Disable touch on non-mobile devices
 	if(!L.Browser.mobile) L.Browser.touch = false;
 
 	// Disable bfcache (firefox compatibility)
