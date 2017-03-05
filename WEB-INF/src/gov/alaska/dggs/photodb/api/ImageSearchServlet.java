@@ -79,18 +79,18 @@ public class ImageSearchServlet extends HttpServlet
 			String emptydesc = request.getParameter("description");
 			if(emptydesc != null && emptydesc.length() > 0){
 				if(Boolean.valueOf(emptydesc)){
-					query.setFilter("-description", "[\"\" TO *]");
+					query.setFilter("-description", "*");
 				} else {
-					query.setFilter("description", "[\"\" TO *]");
+					query.setFilter("description", "*");
 				}
 			}
 
 			String emptylocation = request.getParameter("location");
 			if(emptylocation != null && emptylocation.length() > 0){
 				if(Boolean.valueOf(emptylocation)){
-					query.setFilter("-geog", "[\"\" TO *]");
+					query.setFilter("-geog", "*");
 				} else {
-					query.setFilter("geog", "[\"\" TO *]");
+					query.setFilter("geog", "*");
 				}
 			}
 

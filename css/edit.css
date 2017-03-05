@@ -114,3 +114,8 @@ td.col-controls {
 	width: 90px; text-align: left !important;
 }
 .col-controls button { margin: 2px 4px; }
+
+.map-disable #map { background-color: #eee; opacity: 0.3; }
+.map-disable #map, .map-disable .leaflet-control, .map-disable .leaflet-interactive {
+	pointer-events: none;
+}

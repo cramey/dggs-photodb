@@ -56,7 +56,6 @@ function init()
 	}
 
 	features = L.geoJson();
-	if(geojson) features.addData(geojson);
 
 	map = L.map('map', {
 		closePopupOnClick: false,
@@ -125,6 +124,29 @@ function init()
     features.addLayer(e.layer);
   });
 
+	var mapt = document.getElementById('map-toggle');
+	if(mapt){
+		mapt.innerHTML = (geojson ? 'Disable editing' : 'Enable editing');
+		mapt.style.color = '#' + (geojson ? '080' : 'f00');
+		mapt.onclick = function(){
+			var mc = document.getElementById('map-container');
+			if(!mc) return;
+
+			var state = (mc.className == 'map-disable');
+			mc.className = (state ? '' : 'map-disable');
+			this.style.color = '#' + (state ? '080' : 'f00');
+			this.innerHTML = (state ? 'Disable' : 'Enable') + ' editing';
+		};
+	}
+
+	// Load geojson
+	if(geojson){
+		features.addData(geojson);
+	} else {
+		var mc = document.getElementById('map-container');
+		if(mc) mc.className = 'map-disable';
+	}
+
 	var taken = document.getElementById('taken');
 	if(taken && !taken.disabled) taken.focus();
 }
@@ -178,13 +200,17 @@ function saveImage()
 		}
 	}
 
-	var flayers = features.getLayers();
-	if(flayers.length > 0){
+	var mc = document.getElementById('map-container');
+	if(mc.className !== 'map-disable'){
 		if(params.length > 0) params += '&';
 		params += 'geojson=';
-		params += encodeURIComponent(
-			JSON.stringify(flayers[0].toGeoJSON().geometry)
-		);
+
+		var flayers = features.getLayers();
+		if(flayers.length > 0){
+			params += encodeURIComponent(
+				JSON.stringify(flayers[0].toGeoJSON().geometry)
+			);
+		}
 	}
 
 	var xhr = (window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest());

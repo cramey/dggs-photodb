@@ -20,7 +20,13 @@
 		<style>
 			.apptmpl-container { min-width: 450px !important; }
 		</style>
-		<script>var geojson = ${fn:length(common.geojson) == 1 && not empty common.geojson[0] ? common.geojson[0] : 'null'};</script>
+		<script>
+		<c:choose>
+			<c:when test="${fn:length(common.geojson) == 1 && not empty common.geojson[0]}">var geojson = ${common.geojson[0]};</c:when>
+			<c:when test="${fn:length(common.geojson) gt 0}">var geojson = {};</c:when>
+			<c:otherwise>var geojson = false;</c:otherwise>
+		</c:choose>
+		</script>
 		<script src="../../js/leaflet.js"></script>
 		<script src="../../js/leaflet.draw.js"></script>
 		<script src="../../js/leaflet.draw.js"></script>
@@ -54,8 +60,10 @@
 
 			<div class="apptmpl-content">
 				<input type="hidden" name="ids" id="ids" value="<c:out value="${ids_str}"/>">
+
 				<div id="map-container">
 					<div id="map"></div>
+					<a id="map-toggle" href="javascript:void(0)"></a>
 				</div>
 
 				<c:if test="${!empty common.taken}">
