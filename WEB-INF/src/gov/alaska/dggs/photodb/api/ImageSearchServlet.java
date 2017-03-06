@@ -67,7 +67,7 @@ public class ImageSearchServlet extends HttpServlet
 
 			query.setFields(
 				"id, description, credit, title, " +
-				"taken, filename, " +
+				"taken, accuracy, filename, " +
 				"geojson:[geo f=geog w=GeoJSON]"
 			);
 

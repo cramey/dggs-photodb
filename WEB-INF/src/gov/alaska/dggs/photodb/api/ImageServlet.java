@@ -157,7 +157,14 @@ public class ImageServlet extends HttpServlet
 					SimpleDateFormat sdf = new SimpleDateFormat(
 						"yyyy-MM-dd'T'HH:mm:ss'Z'"
 					);
-					Json json = Json.object("id", image.getID());
+					Json json = Json.object(
+						"id", image.getID()
+					);
+					switch(image.getAccuracy()){
+						case 0: json.set("accuracy", "good"); break;
+						case 2: json.set("accuracy", "poor"); break;
+						default: json.set("accuracy", "fair");
+					}
 					if(image.getSummary() != null){
 						json.set("title", image.getSummary());
 					}

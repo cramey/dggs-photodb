@@ -141,7 +141,7 @@ function init()
 
 	// Load geojson
 	if(geojson){
-		features.addData(geojson);
+		if('type' in geojson) features.addData(geojson);
 	} else {
 		var mc = document.getElementById('map-container');
 		if(mc) mc.className = 'map-disable';

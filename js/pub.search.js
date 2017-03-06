@@ -57,7 +57,7 @@ function init()
 
 			for(var i = 0; i < obj['docs'].length; i++){
 				var o = obj['docs'][i];
-				if('geojson' in o){
+				if('geojson' in o && 'accuracy' in o && o['accuracy'] !== 'poor'){
 					// Clone the geojson object, allowing
 					// the original reference to be freed
 					var geojson = {

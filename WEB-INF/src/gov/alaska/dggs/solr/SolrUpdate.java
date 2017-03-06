@@ -38,7 +38,6 @@ public class SolrUpdate
 			String params = Json.object(
 				"add", Json.object("doc", obj)
 			).toString();
-			System.out.println(params);
 			conn.execute(params);
 		} catch(Exception ex){
 			ex.printStackTrace();

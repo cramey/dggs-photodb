@@ -45,7 +45,7 @@
 		<script src="../js/detail.js"></script>
 		</c:if>
 	</head>
-	<body ${!empty image.geoJSON ? 'onload="init()"' : ''}>
+	<body ${!empty image.geoJSON && image.accuracy != 2 ? 'onload="init()"' : ''}>
 		<div class="apptmpl-container">
 			<div class="apptmpl-goldbar">
 				<a class="apptmpl-goldbar-left" href="http://alaska.gov"></a>
@@ -100,7 +100,7 @@
 					</c:if>
 				</dl>
 
-				<c:if test="${!empty image.geoJSON}">
+				<c:if test="${!empty image.geoJSON && image.accuracy != 2}">
 				<div id="map"></div>
 				</c:if>
 				<div style="clear: both"></div>

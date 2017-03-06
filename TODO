@@ -1,7 +1,0 @@
-Fix editing of the location on the edit page: Locations may be updated, but
-cannot be removed. It should be possible to remove, update or ignore (like all
-the other fields)
-Add location quality to search index
-Hide geometry for locations with poor location quality
-Add support for bounding boxes for geometry
-Private search: Search by location quality
