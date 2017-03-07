@@ -42,7 +42,7 @@
 
 				<a href="../upload.html">Upload</a>
 				<a href="../../logout">Logout</a>
-				<a href="help/">Help</a>
+				<a href="../../help/">Help</a>
 			</div>
 
 			<div class="apptmpl-banner">

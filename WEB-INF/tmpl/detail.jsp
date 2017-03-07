@@ -52,7 +52,7 @@
 				<span class="apptmpl-goldbar-right"></span>
 
 				<a href="../private/">Login</a>
-				<a href="help/">Help</a>
+				<a href="../help/">Help</a>
 			</div>
 
 			<div class="apptmpl-banner">
