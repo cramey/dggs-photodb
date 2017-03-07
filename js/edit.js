@@ -56,6 +56,12 @@ function init()
 	}
 
 	features = L.geoJson();
+	features.on('layeradd', function(e){
+		updateLonLat(e.layer);
+	});
+	features.on('layerremove', function(e){
+		updateLonLat();
+	});
 
 	map = L.map('map', {
 		closePopupOnClick: false,
@@ -269,7 +275,7 @@ function updateLonLat(layer)
 	var el = document.getElementById('lonlat');
 	if(!el) return;
 
-	if(typeof layer !== 'undefined'){
+	if(typeof layer !== 'undefined' && 'getLatLng' in layer){
 		var ll = layer.getLatLng();
 		el.innerHTML = ll.lng.toFixed(5) + ', ' + ll.lat.toFixed(5);
 	} else {
