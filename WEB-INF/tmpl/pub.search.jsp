@@ -85,13 +85,7 @@
 
 				<hr>
 
-				<div class="footer">
-					Image is available for free public use courtesy of DGGS, unless
-					otherwise credited. Please cite the photographer and "Alaska Division
-					of Geological &amp; Geophysical Surveys" when using this image. If a
-					non-DGGS source is credited, you must obtain permission from the
-					copyright holder and/or follow their citation specifications.
-				</div>
+				<div class="footer"><%@include file="copyright.html" %></div>
 			</div>
 		</div>
 		<script src="js/mustache-2.3.0.min.js"></script>
