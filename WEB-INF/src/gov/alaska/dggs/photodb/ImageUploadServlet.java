@@ -273,8 +273,7 @@ public class ImageUploadServlet extends HttpServlet
 							}
 						} catch(Exception exe){
 							// If the image scaling throws an exception, it's
-							// probably because it's an invalid image, so just ignore
-							// it.
+							// probably because it's an invalid image
 							errors.add(filename + ", is not a supported image (ImageIO)");
 							continue;
 						}
