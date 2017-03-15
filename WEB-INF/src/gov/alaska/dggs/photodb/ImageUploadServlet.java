@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.math.BigDecimal;
+import java.nio.BufferOverflowException;
+import java.nio.CharBuffer;
+import java.nio.ByteBuffer;
 
 import mjson.Json;
 
@@ -39,20 +42,20 @@ import com.drew.metadata.iptc.IptcDirectory;
 import com.drew.metadata.jpeg.JpegDirectory;
 import com.drew.lang.GeoLocation;
 
-import org.apache.commons.io.FileCleaningTracker;
-
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 
 import org.apache.ibatis.session.SqlSession;
 
 import gov.alaska.dggs.photodb.PhotoDBFactory;
+import gov.alaska.dggs.ByteBufferBackedInputStream;
 
 
 public class ImageUploadServlet extends HttpServlet
 {
+	private static final int FILE_SIZE_LIMIT = 52428800;
   private static final int TARGET_WIDTH = 256;
 
 	private String SQL =
@@ -79,28 +82,46 @@ public class ImageUploadServlet extends HttpServlet
 		try (SqlSession sess = PhotoDBFactory.openSession()) {
 			Connection conn = sess.getConnection();
 			if(ServletFileUpload.isMultipartContent(request)){
-				FileCleaningTracker tracker = FileCleanerCleanup.getFileCleaningTracker(
-					context
-				);
-				DiskFileItemFactory factory = new DiskFileItemFactory(
-					1048576, new File(System.getProperty("java.io.tmpdir"))
-				);
-				factory.setFileCleaningTracker(tracker);
-				ServletFileUpload upload = new ServletFileUpload(factory);
-				List<FileItem> items = upload.parseRequest(request);
-				
+
+				ServletFileUpload upload = new ServletFileUpload();
+				FileItemIterator items = upload.getItemIterator(request);
 				try (
 					PreparedStatement ps = conn.prepareStatement(
 						SQL, PreparedStatement.RETURN_GENERATED_KEYS
 					)
 				){
-					for(FileItem item : items){
-						// Ignore form fields
-						if(item.isFormField()){
-							if("format".equals(item.getFieldName()) &&
-								 "json".equalsIgnoreCase(item.getString())){
+					while(items.hasNext()){
+						ByteBuffer buffer = ByteBuffer.allocateDirect(FILE_SIZE_LIMIT);
+						FileItemStream item = items.next();
 
-								usejson = true;
+						try (InputStream istream = item.openStream()){
+							byte[] bf = new byte[4096];
+							buffer.clear();
+							for(int i = 0; (i = istream.read(bf, 0, 4096)) > 0; buffer.put(bf, 0, i));
+							buffer.flip();
+						} catch(BufferOverflowException ex){
+							errors.add(
+								(item.isFormField() ? item.getFieldName() : item.getName()) +
+								", too big (over " + String.valueOf(FILE_SIZE_LIMIT) +
+								" bytes)"
+							);
+							continue;
+						} catch(Exception ex){
+							errors.add(
+								(item.isFormField() ? item.getFieldName() : item.getName()) +
+								", unknown read error"
+							);
+							continue;
+						} 
+
+						// Handle form fields differently
+						if(item.isFormField()){
+							if("format".equals(item.getFieldName()) && buffer.remaining() < 25){
+								byte[] bf = new byte[buffer.remaining()];
+								buffer.get(bf, 0, bf.length);
+
+								String fmt = new String(bf, "utf-8");
+								if("json".equals(fmt)) usejson = true;
 							}
 							continue;
 						}
@@ -134,9 +155,11 @@ public class ImageUploadServlet extends HttpServlet
 							continue;
 						}
 
+						ByteBufferBackedInputStream bbis = new ByteBufferBackedInputStream(buffer);
+
 						// Deal with the metadata
-						try (InputStream is = item.getInputStream()) {
-							Metadata mdreader = ImageMetadataReader.readMetadata(is);
+						try {
+							Metadata mdreader = ImageMetadataReader.readMetadata(bbis);
 
 							// Scan over all the directories, building
 							// an object for JSON encoding to load into the database
@@ -230,9 +253,11 @@ public class ImageUploadServlet extends HttpServlet
 							// Just ignore it if the metadata reading fails
 						}
 
+						buffer.rewind();
+
 						// Try generating a thumbnail, if needed
-						try (InputStream is = item.getInputStream()) {
-							BufferedImage source = ImageIO.read(is);
+						try {
+							BufferedImage source = ImageIO.read(bbis);
 
 							if(source.getWidth() > TARGET_WIDTH){
 								BufferedImage dest = Scalr.resize(
@@ -254,10 +279,12 @@ public class ImageUploadServlet extends HttpServlet
 							continue;
 						}
 
+						buffer.rewind();
+
 						// Finally, run the insert
-						try (InputStream is = item.getInputStream()) {
+						try {
 							int c = 1;
-							ps.setBinaryStream(c++, is);
+							ps.setBinaryStream(c++, bbis);
 
 							if(thumbnail != null) ps.setBytes(c++, thumbnail);
 							else ps.setNull(c++, Types.BINARY);
