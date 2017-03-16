@@ -19,6 +19,7 @@
 		<include refid="getBy" />
 		FROM image AS i
 		WHERE i.image_id <foreach item="item" index="index" collection="list" open="IN (" separator="," close=")">${item}</foreach>
+		ORDER BY filename
 	</select>
 
 	<select id="getByID" resultSetType="FORWARD_ONLY" parameterType="int" resultMap="ImageMap">

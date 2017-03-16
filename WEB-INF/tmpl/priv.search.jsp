@@ -93,8 +93,9 @@
 							Sort by
 							<select name="search-sort" id="search-sort">
 								<option value="" selected>Score</option>
+								<option value="filename asc">Filename</option>
+								<option value="takensort desc">Taken</option>
 								<option value="title desc">Title</option>
-								<option value="taken desc">Taken</option>
 							</select> |
 							<button id="selected-all">Select/Unselect All</button>
 						</div>
