@@ -1,3 +1,2 @@
-Uploaded images are immediately not indexed by solr
 Possible timezone problem with dates indexed by solr
 	(dates seem to be pushed forward by hours)

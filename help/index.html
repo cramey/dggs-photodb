@@ -6,7 +6,9 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 		<title>Alaska Division of Geological &amp; Geophysical Surveys Photo Database</title>
 		<style>
-			th { text-align: left; }
+			td { padding: 8px 0 0 0; }
+			th { text-align: left; vertical-align: bottom; white-space: nowrap; padding: 0 8px 0 0; }
+			pre { display: inline-block; background-color: #111; color: #eee; padding: 0 4px; }
 		</style>
 	</head>
 	<body>
@@ -23,19 +25,17 @@
 			<a href="#q3">How do I download a photo?</a><br/>
 			<a href="#q4">How should the photos be credited?</a><br/>
 			<a href="#q5">How do I search records in Geologic Photos of Alaska?</a><br/>
-			<a href="#q6">How are the fields in the public interface defined?</a>
+			<a href="#q6">How are the fields defined?</a>
 		</p>
 		<h3><a name="q1">What is the Geologic Photos of Alaska application?</a></h3>
 		<p>
 			Geologic Photos of Alaska is a web-based tool to discover photos taken
-			during Division of Geological &amp; Geophysical Survey (DGGS) field
-			programs throughout the state of Alaska. The application contains a text
-			and map-based search interface to make information easily accessible. The
+			during Division of Geological &amp; Geophysical Survey (DGGS) field programs
+			throughout the State of Alaska. The application contains a text- and
+			map-based search interface to make information easily accessible. The
 			application provides information and a location for each photo, if known.
-		</p>
-		<p>
-		 More information about the application and underlying data can be found in
-		 the metadata file.
+			Locations are shown by a pin or area. More information about the
+			application and underlying data can be found in the metadata file.
 		</p>
 		<h3><a name="q2">Can I use these photos?</a></h3>
 		<p>
@@ -82,13 +82,30 @@
 		</p>
 		<p>
 			The Search Bar above the map allows for queries of single and multiple
-			terms, where multiple terms are always searched with an implied Boolean
-			“AND.” Text from all photo description fields, except the date field, may
-			be queried through the Search Bar. The photo file name, e.g.
-			85DllnTlr.jpg, is also searchable, and is discoverable by hovering the
+			terms, where multiple terms without other query specifications are always
+			searched with an implied Boolean "AND." Advanced search parameters
+			include logical operators AND, OR, NOT (also "-" for NOT). Text from all
+			photo descriptive fields may be queried through the Search Bar using the
+			format of the following examples. The photo file name, e.g.
+			"85DllnTlr.jpg", is also searchable, and is discoverable by hovering the
 			mouse curser over an image.
 		</p>
-		<h4><a name="q6">How are the fields in the public interface defined?</a></h3>
+		<p>
+			Search examples:
+			<ul>
+				<li>
+					Date search:
+					<pre>taken:2001-01-01</pre>
+					<pre>entered:[2001-11 TO 2020-11]</pre>
+					<pre>taken:2013</pre>
+					<pre>taken:[2013 TO *]</pre>
+				</li>
+				<li>Partial text: <pre>title:rock*</pre></li>
+				<li>Phrase: <pre>description:”Rocky Point”</pre></li>
+				<li>Combination: <pre>sand AND -title:rock</pre></li>
+			</ul>
+		</p>
+		<h3><a name="q6">How are the fields defined?</a></h3>
 		<p>
 			Definitions of fields available in the public interface. See the metadata
 			for a complete list of fields and definitions.
@@ -96,43 +113,87 @@
 		<table>
 			<thead>
 				<tr>
-					<th>Field Names</th>
+					<th>Field name</th>
+					<th>Search name</th>
 					<th>Definition</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
 					<td>Title</td>
-					<td>Brief summary of photo subject</td>
+					<td>title</td>
+					<td>
+						Brief summary of photo subject (public field)
+					</td>
 				</tr>
 				<tr>
 					<td>Credit</td>
+					<td>credit</td>
 					<td>
-						Photographer’s first and last name; data source is assumed to be
-						DGGS unless otherwise noted. 
+						Photographer's first and last name; data source is assumed to be
+						DGGS unless otherwise noted. (public field)
 					</td>
 				</tr>
 				<tr>
 					<td>Description</td>
+					<td>description</td>
 					<td>
-						Information about photo, which may include associated project,
-						scale, orientation, geologic data, location, and photo subject
-						details.
+						Information about photo, which may include associated project, scale, orientation, geologic data, location, and photo subject details. (public field)
 					</td>
 				</tr>
 				<tr>
 					<td>Taken</td>
+					<td>taken</td>
 					<td>
 						Date taken. If the day is unknown, recorded as the first day of the
 						month; if the month and day are unknown, recorded as January 1.
+						(public field)
 					</td>
 				</tr>
 				<tr>
 					<td>Tagged</td>
+					<td>tags</td>
 					<td>
 						Keywords (subject, geology, place, etc.) to facilitate photo
-						searching
+						searching. Examples include sunset, lake, helicopter, brooks range,
+						outcrop, and aerial view. (public field)
 					</td>
+				</tr>
+				<tr>
+					<td>Location accuracy</td>
+					<td>accuracy</td>
+					<td>
+						Picklist: good, fair, poor. Good location accuracy is defined as a
+						known outcrop location or constrained to within several kilometers.
+						Fair accuracy is defined as location known at 1:63,360 scale or
+						larger (±10 km). Poor accuracy is defined as location known at
+						smaller than 1:63,360 scale (±60 km). (internal field)
+					</td>
+				</tr>
+				<tr>
+					<td>Security</td>
+					<td>ispublic</td>
+					<td>
+						Picklist: public, private. Determines whether photo is available
+						through the public application. (internal field)
+					</td>
+				</tr>
+				<tr>
+					<td>image_id</td>
+					<td>id</td>
+					<td>
+						Unique numerical ID for every photo (internal field)
+					</td>
+				</tr>
+				<tr>
+					<td>filename</td>
+					<td>filename</td>
+					<td>Image file name (internal field)</td>
+				</tr>
+				<tr>
+					<td>entered</td>
+					<td>entered</td>
+					<td>Date photo was entered into the database (internal field)</td>
 				</tr>
 			</tbody>
 		</table>

@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.nio.BufferOverflowException;
 import java.nio.CharBuffer;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 
 import mjson.Json;
 
@@ -52,6 +53,8 @@ import org.apache.ibatis.session.SqlSession;
 import gov.alaska.dggs.photodb.PhotoDBFactory;
 import gov.alaska.dggs.ByteBufferBackedInputStream;
 
+import gov.alaska.dggs.solr.SolrUpdate;
+
 
 public class ImageUploadServlet extends HttpServlet
 {
@@ -73,13 +76,21 @@ public class ImageUploadServlet extends HttpServlet
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		ServletContext context = getServletContext();
+		String solr_url = context.getInitParameter("solr_url");
 
 		List<Integer> ids = new ArrayList<Integer>();
 		List<String> errors = new ArrayList<String>();
 
 		boolean usejson = false;
 
+		// SimpleDateFormat for Solr
+		SimpleDateFormat sdf = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ss'Z'"
+		);
+
 		try (SqlSession sess = PhotoDBFactory.openSession()) {
+			SolrUpdate solr = new SolrUpdate(solr_url);
+
 			Connection conn = sess.getConnection();
 			if(ServletFileUpload.isMultipartContent(request)){
 
@@ -282,6 +293,13 @@ public class ImageUploadServlet extends HttpServlet
 
 						// Finally, run the insert
 						try {
+							// Solr json object for searching
+							Json json = Json.object(
+								"entered", sdf.format(new Date()),
+								"ispublic", false,
+								"accuracy", "fair"
+							);
+
 							int c = 1;
 							ps.setBinaryStream(c++, bbis);
 
@@ -289,16 +307,22 @@ public class ImageUploadServlet extends HttpServlet
 							else ps.setNull(c++, Types.BINARY);
 
 							ps.setString(c++, filename);
+							json.set("filename", filename);
 
 							if(file_date != null){
 								ps.setDate(c++, new java.sql.Date(file_date.getTime()));
+								json.set("taken", sdf.format(file_date));
 							} else ps.setNull(c++, Types.DATE);
 
-							if(credit != null) ps.setString(c++, credit);
-							else ps.setNull(c++, Types.VARCHAR);
+							if(credit != null){
+								ps.setString(c++, credit);
+								json.set("credit", credit);
+							} else ps.setNull(c++, Types.VARCHAR);
 
-							if(description != null) ps.setString(c++, description);
-							else ps.setNull(c++, Types.VARCHAR);
+							if(description != null){
+								ps.setString(c++, description);
+								json.set("description", description);
+							} else ps.setNull(c++, Types.VARCHAR);
 
 							ps.setString(c++, Json.make(metadata).toString());
 
@@ -306,6 +330,15 @@ public class ImageUploadServlet extends HttpServlet
 								ps.setBigDecimal(c++, new BigDecimal(lon));
 								ps.setBigDecimal(c++, new BigDecimal(lat));
 								ps.setInt(c++, srid);
+
+								if(srid == 4326){
+									json.set(
+										"geog", Json.object(
+											"type", "Point",
+											"coordinates", Json.array(lon, lat)
+										).toString()
+									);
+								}
 							} else {
 								ps.setNull(c++, Types.NUMERIC);
 								ps.setNull(c++, Types.NUMERIC);
@@ -315,7 +348,13 @@ public class ImageUploadServlet extends HttpServlet
 							conn.commit();
 
 							try (ResultSet rs = ps.getGeneratedKeys()){
-								if(rs.next()) ids.add(rs.getInt(1));
+								if(rs.next()){
+									int id = rs.getInt(1);
+									ids.add(id);
+									json.set("id", id);
+
+									solr.add(json);
+								}
 							}
 						} catch(Exception exe){
 							// File fails

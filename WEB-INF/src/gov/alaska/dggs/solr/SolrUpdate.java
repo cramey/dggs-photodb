@@ -40,7 +40,7 @@ public class SolrUpdate
 			).toString();
 			conn.execute(params);
 		} catch(Exception ex){
-			ex.printStackTrace();
+			// Ignore errors
 		}
 	}
 }
