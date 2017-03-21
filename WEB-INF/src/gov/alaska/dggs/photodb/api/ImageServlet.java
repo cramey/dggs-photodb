@@ -64,47 +64,49 @@ public class ImageServlet extends HttpServlet
 					if(r < 1) throw new Exception("Delete failed.");
 					solr.delete(image.getID());
 				} else {
-					List<Tag> otags = new LinkedList<Tag>();
-					if(image.getTags() != null) otags.addAll(image.getTags());
-
-					Set<Tag> ttags = new HashSet<Tag>(50);
 					String str_tags = request.getParameter("tags");
 					if(str_tags != null){
-						String tags[] = str_tags.split(",");
-						for(String t : tags){
-							String tx = t.trim().toLowerCase();
-							if(tx.length() > 0){
-								Tag tag = getOrAddTag(tx);
-								ttags.add(tag);
+						List<Tag> otags = new LinkedList<Tag>();
+						if(image.getTags() != null) otags.addAll(image.getTags());
+
+						Set<Tag> ttags = new HashSet<Tag>(50);
+						if(str_tags != null){
+							String tags[] = str_tags.split(",");
+							for(String t : tags){
+								String tx = t.trim().toLowerCase();
+								if(tx.length() > 0){
+									Tag tag = getOrAddTag(tx);
+									ttags.add(tag);
+								}
 							}
 						}
-					}
-					List<Tag> ntags = new LinkedList<Tag>(ttags);
+						List<Tag> ntags = new LinkedList<Tag>(ttags);
 
-					// Generate a list of tags that need to be removed
-					// and remove them
-					List<Tag> remove_tags = new LinkedList<Tag>(otags);
-					remove_tags.removeAll(ntags);
-					for(Tag tag : remove_tags){
-						HashMap m = new HashMap();
-						m.put("image", image);
-						m.put("tag", tag);
-						sess.delete("gov.alaska.dggs.photodb.Image.removeTag", m);
-					}
+						// Generate a list of tags that need to be removed
+						// and remove them
+						List<Tag> remove_tags = new LinkedList<Tag>(otags);
+						remove_tags.removeAll(ntags);
+						for(Tag tag : remove_tags){
+							HashMap m = new HashMap();
+							m.put("image", image);
+							m.put("tag", tag);
+							sess.delete("gov.alaska.dggs.photodb.Image.removeTag", m);
+						}
 
-					// Generate a list of tags that need to be added
-					// and add them
-					List<Tag> add_tags = new LinkedList<Tag>(ntags);
-					add_tags.removeAll(otags);
-					for(Tag tag : add_tags){
-						HashMap m = new HashMap();
-						m.put("image", image);
-						m.put("tag", tag);
-						sess.insert("gov.alaska.dggs.photodb.Image.addTag", m);
-					}
+						// Generate a list of tags that need to be added
+						// and add them
+						List<Tag> add_tags = new LinkedList<Tag>(ntags);
+						add_tags.removeAll(otags);
+						for(Tag tag : add_tags){
+							HashMap m = new HashMap();
+							m.put("image", image);
+							m.put("tag", tag);
+							sess.insert("gov.alaska.dggs.photodb.Image.addTag", m);
+						}
 
-					// Set a list of new tags and push that into image
-					image.setTags(ntags);
+						// Set a list of new tags and push that into image
+						image.setTags(ntags);
+					}
 
 					// Then update image
 					String summary = request.getParameter("summary");
