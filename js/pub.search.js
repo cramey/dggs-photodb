@@ -51,7 +51,7 @@ function init()
 			var stats = document.getElementById('search-stats');
 			if(stats){
 				stats.innerHTML = 'Displaying ' + (obj['start'] + 1) +
-					' to ' + (obj['start'] + obj['docs'].length) +
+					' - ' + (obj['start'] + obj['docs'].length) +
 					' of ' + obj['numFound'];
 			}
 

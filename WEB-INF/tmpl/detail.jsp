@@ -18,25 +18,7 @@
 		<link rel="stylesheet" href="../js/leaflet.css">
 		<link rel="stylesheet" href="../js/leaflet.mouseposition.css">
 		</c:if>
-		<style>
-			.apptmpl-container { min-width: 450px !important; }
-			.footer { font-size: 12px; }
-			a img { border: none; }
-			dl { margin: 0; padding: 0; }
-			dt { font-weight: bold; }
-			dd { margin: 0 0 8px 16px; }
-			#image {
-				width: 55%;
-				float: right;
-				margin: 0 0 8px 8px;
-			}
-			#map {
-				display: inline-block;
-				margin: 16px 0 0 0;
-				height: 300px;
-				width: 43%;
-			}
-		</style>
+		<link rel="stylesheet" href="../css/detail.css">
 		<c:if test="${!empty image.geoJSON}">
 		<script>var geojson = ${image.geoJSON};</script>
 		<script src="../js/leaflet.js"></script>

@@ -1,0 +1,25 @@
+.apptmpl-container { min-width: 300px !important; }
+.apptmpl-banner-title { font-size: 20px; }
+.apptmpl-banner-desc { font-size: 12px; }
+.footer { font-size: 12px; }
+a img { border: none; }
+dl { margin: 0; padding: 0; }
+dt { font-weight: bold; }
+dd { margin: 0 0 8px 16px; }
+#image { width: 100%; }
+#map {
+	display: inline-block;
+	height: 300px;
+	margin: 16px 0 0 0;
+	width: 100%;
+}
+
+@media only screen and (min-width: 640px) {
+	.apptmpl-banner-title { font-size: 22px; }
+	.apptmpl-banner-desc { font-size: 14px; }
+	#image {
+		width: 55%; float: right;
+		margin: 0 0 8px 8px;
+	}
+	#map { width: 43%; }
+}

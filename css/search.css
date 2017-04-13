@@ -1,5 +1,7 @@
 body { overflow-y: scroll; }
-.apptmpl-container { min-width: 450px !important; }
+.apptmpl-container { min-width: 300px !important; }
+.apptmpl-banner-title { font-size: 20px; }
+.apptmpl-banner-desc { font-size: 12px; }
 #map {
 	height: 325px;
 	width: 100%;
@@ -9,7 +11,7 @@ body { overflow-y: scroll; }
 	text-align: left;
 }
 #search-button, #search-prev, #search-next { user-select: none; }
-#search-control { margin: 0 4px; float: right; width: 425px; }
+#search-control { margin: 0 4px; float: right; width: 300px; }
 #search-results-control {
 	display: none; text-align: center;
 }
@@ -56,6 +58,7 @@ body { overflow-y: scroll; }
 #search-results img {
 	border: none;
 }
+#search-stats { display: none; }
 .search-control-tbl { display: table; width: 100%; }
 .search-control-cell { display: table-cell; }
 .footer { font-size: 12px; }
@@ -69,4 +72,10 @@ body { overflow-y: scroll; }
 .err-results span {
 	background-color: #f88;
 	padding: 4px 8px;
+}
+@media only screen and (min-width: 500px) {
+	.apptmpl-banner-title { font-size: 22px; }
+	.apptmpl-banner-desc { font-size: 14px; }
+	#search-control { width: 420px; }
+	#search-stats { font-size: 16px; display: inline; }
 }
