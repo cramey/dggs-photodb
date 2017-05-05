@@ -175,7 +175,7 @@ function toggleEnabled()
 function saveImage()
 {
 	var button = document.getElementById('button-save');
-	if(button) button.innerHTML = 'Saving.. ';
+	if(button) button.innerHTML = 'Saving ..';
 
 	var FIELDS = ['ids', 'taken', 'credit', 'summary', 'description', 'tags', 'accuracy', 'ispublic'];
 
@@ -225,10 +225,10 @@ function saveImage()
 			if(xhr.status === 200){
 				var obj = JSON.parse(xhr.responseText);
 				if(obj['success']){
-					if(button) button.innerHTML = 'Save Complete';
+					if(button) button.innerHTML = 'Saved';
 					setTimeout(function(){
 						var button = document.getElementById('button-save');
-						if(button) button.innerHTML = 'Save Changes';
+						if(button) button.innerHTML = 'Save';
 					}, 5000);
 					return;
 				}

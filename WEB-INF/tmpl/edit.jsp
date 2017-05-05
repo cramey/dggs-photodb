@@ -156,7 +156,7 @@
 								<td colspan="2" style="text-align: right; background-color: #fff">
 									<button class="button" id="button-delete">Delete Image(s)</button>
 									<button class="button" id="button-spreadsheet">Spreadsheet Mode (Do not save)</button>
-									<button class="button" tabindex="8" id="button-save">Save Changes</button>
+									<button class="button" tabindex="8" id="button-save">Save</button>
 								</td>
 							</tr>
 						</tfoot>

@@ -32,7 +32,7 @@
 	text-align: left;
 }
 #tags, #description, #summary, #credit { width: 100%; }
-#button-delete, #button-spreadsheet, #button-edit { margin: 0 32px 0 0; }
+#button-delete, #button-spreadsheet, #button-edit { margin: 0 8px 0 0; }
 .ffields { border-collapse: collapse; width: 100%; }
 .ffields td, .ffields th {
 	padding: 0; margin: 0;
