@@ -194,11 +194,10 @@ public class ImageUploadServlet extends HttpServlet
 								if(!hm.isEmpty()) metadata.put(directory.getName(), hm);
 							}
 
-							// Try to pull the date and the description from the top
+							// Try to pull the description from the top of the
 							// EXIF directory
 							ExifIFD0Directory ifd = mdreader.getDirectory(ExifIFD0Directory.class);
 							if(ifd != null){
-								file_date = ifd.getDate(ExifIFD0Directory.TAG_DATETIME);
 								description = ifd.getString(ExifIFD0Directory.TAG_IMAGE_DESCRIPTION);
 								if(description != null){
 									description = description.trim();
@@ -206,7 +205,8 @@ public class ImageUploadServlet extends HttpServlet
 								}
 							}
 
-							//  Try an alternate tag for the date/time if we don't have it
+							// Probe the SubIF directory for the photo's
+							// original date/time
 							if(file_date == null){
 								ExifSubIFDDirectory subif = mdreader.getDirectory(ExifSubIFDDirectory.class);
 								if(subif != null){
@@ -237,6 +237,12 @@ public class ImageUploadServlet extends HttpServlet
 										if(description.length() == 0) description = null;
 									}
 								}
+							}
+
+							// Failing that, try using the date time from the root EXIF
+							// structure. This is usually the modified date/time.
+							if(ifd != null && file_date == null){
+								file_date = ifd.getDate(ExifIFD0Directory.TAG_DATETIME);
 							}
 
 							// Try reading the GPS directory for the spatial data

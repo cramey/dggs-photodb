@@ -1,2 +1,0 @@
-Possible timezone problem with dates indexed by solr
-	(dates seem to be pushed forward by hours)
