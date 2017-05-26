@@ -31,14 +31,6 @@ var baselayers = {
 		'//server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
 		{ minZoom: 3, maxZoom: 16, zIndex: 8 }
 	),
-	'GINA Satellite': new L.TileLayer(
-		'http://tiles.gina.alaska.edu/tilesrv/bdl/tile/{x}/{y}/{z}',
-		{ minZoom: 3, mazZoom: 15, zIndex: 9 }
-	),
-	'GINA Topographic': new L.TileLayer(
-		'http://tiles.gina.alaska.edu/tilesrv/drg/tile/{x}/{y}/{z}',
-		{ minZoom: 3, maxZoom: 12, zIndex: 10 }
-	),
 	'Stamen Watercolor': new L.TileLayer(
 		'http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.png',
 		{ minZoom: 3, maxZoom: 16, subdomains: 'abcd', zIndex: 11 }
@@ -56,9 +48,14 @@ var overlays = {
 			minZoom: 3, maxZoom: 16, zIndex: 12
 		}
 	),
-	'Quadrangles': new L.TileLayer(
-		'http://tiles.gina.alaska.edu/tilesrv/quad_google/tile/{x}/{y}/{z}',
-		{ minZoom: 3, maxZoom: 16, zIndex: 13 }
+	'Quadrangles': new L.tileLayer.wms(
+		'http://maps.dggs.alaska.gov/arcgis/services/apps/Quad_Boundaries/MapServer/WMSServer',
+		{
+			layers: '1,2,3',
+			transparent: true,
+			format: 'image/png',
+			minZoom: 3, maxZoom: 16, zIndex: 12
+		}
 	)
 };
 
@@ -66,6 +63,9 @@ var overlays = {
 function mirroredLayer(data, style)
 {
 	var layer = L.geoJson(null, {
+		pointToLayer: function (f, ll) {
+			return L.circleMarker(ll);
+		},
 		coordsToLatLngInvert: function(c){
 			var ll = new L.LatLng(c[1], c[0], c[2]);
 			if(ll.lng >= 0) ll.lng -= 360;
