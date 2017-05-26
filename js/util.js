@@ -40,9 +40,9 @@ var baselayers = {
 
 var overlays = {
 	'PLSS (BLM)': new L.tileLayer.wms(
-		'http://www.geocommunicator.gov/arcgis/services/PLSS/MapServer/WMSServer',
+		'http://maps.dggs.alaska.gov/arcgis/services/apps/plss/MapServer/WMSServer',
 		{
-			layers: '1,2,3,4,5,6,7,8,9,10,11,12,13',
+			layers: '1,2,3',
 			transparent: true,
 			format: 'image/png',
 			minZoom: 3, maxZoom: 16, zIndex: 12
