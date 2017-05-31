@@ -19,7 +19,6 @@ function init()
 			'z-index': 20
 		};
 	});
-	features.addData(geojson);
 
 	var map = L.map('map', {
 		closePopupOnClick: false,
@@ -53,4 +52,11 @@ function init()
 			position: 'bottomright', autoZIndex: false
 		}
 	));
+
+	var p_geojson = {
+		type: 'Feature',
+		properties: { color: '#9f00ff' },
+		geometry: geojson
+	};
+	features.addData(p_geojson);
 }
