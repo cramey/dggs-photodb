@@ -22,6 +22,7 @@
 		ORDER BY filename
 	</select>
 
+
 	<select id="getByID" resultSetType="FORWARD_ONLY" parameterType="int" resultMap="ImageMap">
 		<include refid="getBy" />
 		FROM image AS i
@@ -34,6 +35,31 @@
 			description, geojson, accuracy,
 			tags, ispublic
 		FROM images_common(<foreach item="item" index="index" collection="list" open="ARRAY[" separator="," close="]">${item}</foreach>)
+	</select>
+
+
+	<select id="getNDC" resultSetType="FORWARD_ONLY" resultType="Map">
+		SELECT i.image_id, i.summary, i.description, i.credit,
+			TO_CHAR(i.modified, 'YYYY-MM-DD') AS modified,
+			TO_CHAR(i.taken, 'YYYY-MM-DD') AS taken,
+			ST_X(i.geog::GEOMETRY) AS longitude,
+			ST_Y(i.geog::GEOMETRY) AS latitude,
+			t.tags
+		FROM image AS i
+		LEFT OUTER JOIN (
+			SELECT it.image_id,
+				STRING_AGG(t.name, ', ') AS tags
+			FROM image_tag AS it
+			JOIN tag AS t
+				ON t.tag_id = it.tag_id
+			GROUP BY it.image_id
+		) AS t ON t.image_id = i.image_id
+		WHERE i.summary IS NOT NULL
+			AND i.taken IS NOT NULL
+			AND i.description IS NOT NULL
+			AND i.geog IS NOT NULL
+			AND i.ispublic
+		ORDER BY image_id
 	</select>
 
 

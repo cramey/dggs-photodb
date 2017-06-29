@@ -19,6 +19,26 @@
 	</context-param>
 
 
+	<context-param>
+		<description>
+			CollectionID used in populating the National Digital Collection
+			XML feed.
+		</description>
+		<param-name>collectionid</param-name>
+		<param-value>55ce5b1ee4b01487cbfc7104</param-value>
+	</context-param>
+
+
+	<context-param>
+		<description>
+			Root URL prefix used when generating URLs in National
+			Digital Collection XML feed (with trailing slash)
+		</description>
+		<param-name>rooturl</param-name>
+		<param-value>http://maps.dggs.alaska.gov/photodb/</param-value>
+	</context-param>
+
+
 	<servlet>
 		<servlet-name>ImageUpload</servlet-name>
 		<servlet-class>gov.alaska.dggs.photodb.ImageUploadServlet</servlet-class>
@@ -171,6 +191,16 @@
 	<servlet-mapping>
 		<servlet-name>LogoutServlet</servlet-name>
 		<url-pattern>/logout</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>NDCXMLServlet</servlet-name>
+		<servlet-class>gov.alaska.dggs.photodb.api.NationalDigitalCatalogXMLServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>NDCXMLServlet</servlet-name>
+		<url-pattern>/ndc.xml</url-pattern>
 	</servlet-mapping>
 
 
