@@ -30,9 +30,7 @@ public class NationalDigitalCatalogXMLServlet extends HttpServlet
 	public void doPostGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		ServletContext context = getServletContext();
-
-		SqlSession sess = PhotoDBFactory.openSession();
-		try {
+		try (SqlSession sess = PhotoDBFactory.openSession()){
 			List<Map> rows = sess.selectList(
 				"gov.alaska.dggs.photodb.Image.getNDC"
 			);
@@ -135,11 +133,9 @@ public class NationalDigitalCatalogXMLServlet extends HttpServlet
 			writer.writeEndElement();
 			writer.writeEndDocument();
 			writer.close();
-
 		} catch(Exception ex){
+			ex.printStackTrace();
 			throw new ServletException(ex);
-		} finally {
-			sess.close();	
 		}
 	}
 }

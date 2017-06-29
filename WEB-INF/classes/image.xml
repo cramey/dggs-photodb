@@ -42,8 +42,8 @@
 		SELECT i.image_id, i.summary, i.description, i.credit,
 			TO_CHAR(i.modified, 'YYYY-MM-DD') AS modified,
 			TO_CHAR(i.taken, 'YYYY-MM-DD') AS taken,
-			ST_X(i.geog::GEOMETRY) AS longitude,
-			ST_Y(i.geog::GEOMETRY) AS latitude,
+			ST_X(ST_CENTROID(i.geog::GEOMETRY)) AS longitude,
+			ST_Y(ST_CENTROID(i.geog::GEOMETRY)) AS latitude,
 			geog_accuracy AS accuracy,
 			t.tags
 		FROM image AS i
@@ -60,7 +60,6 @@
 			AND i.description IS NOT NULL
 			AND i.ispublic
 			AND i.geog IS NOT NULL
-			AND ST_Dimension(i.geog::GEOMETRY) = 0
 		ORDER BY image_id
 	</select>
 
