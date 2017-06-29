@@ -73,6 +73,15 @@ public class NationalDigitalCatalogXMLServlet extends HttpServlet
 					writer.writeCharacters(row.get("credit").toString());
 					writer.writeCharacters(".");
 				}
+				if(row.containsKey("accuracy")){
+					writer.writeCharacters(" Location accuracy is ");
+					switch((Integer)row.get("accuracy")){
+						case 0: writer.writeCharacters("good"); break;
+						case 1: writer.writeCharacters("fair"); break;
+						case 2: writer.writeCharacters("poor"); break;
+					}
+					writer.writeCharacters(".");
+				}
 				writer.writeEndElement();
 
 				writer.writeStartElement("supplementalInformation");
