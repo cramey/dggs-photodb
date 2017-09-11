@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<project name="photodb" default="war">
+	<property name="catalina.home" value="${user.home}/tomcat" />
+
+	<target name="clean">
+		<delete>
+			<fileset dir="src/WEB-INF/classes" includes="**/*.class" />
+		</delete>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="src/WEB-INF/classes" />
+
+		<javac srcdir="src" destdir="src/WEB-INF/classes" includeantruntime="false">
+			<classpath>
+				<fileset dir="src/WEB-INF/lib" includes="*.jar" />
+				<fileset dir="${catalina.home}/lib" includes="*.jar" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="war" depends="compile">
+		<war destfile="photodb.war" webxml="src/WEB-INF/web.xml">
+			<fileset dir="src">
+				<exclude name="WEB-INF/src/**" />
+			</fileset>
+		</war>
+	</target>
+</project>

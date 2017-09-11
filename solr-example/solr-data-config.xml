@@ -1,0 +1,10 @@
+<dataConfig>
+	<dataSource driver="org.postgresql.Driver" url="jdbc:postgresql://postgresql_server/photodb" user="photodb_user" password="photodb_password" readOnly="true" />
+	<document>
+		<entity name="image" query="SELECT i.image_id AS id, COALESCE(metadata->>'import-path', i.filename) AS filename, i.taken, i.taken AS takensort, i.entered, i.credit, i.summary AS title, i.description, i.ispublic, CASE WHEN i.geog_accuracy = 0 THEN 'good' WHEN i.geog_accuracy = 2 THEN 'poor' ELSE 'fair' END AS accuracy, ST_AsGeoJSON(i.geog, 5, 0) AS geog FROM image AS i">
+			<entity name="tag" query="SELECT name FROM tag AS t JOIN image_tag AS it ON it.tag_id = t.tag_id WHERE it.image_id = ${image.id}">
+				<field name="tags" column="name" />
+			</entity>
+		</entity>
+	</document>
+</dataConfig>
